@@ -5,7 +5,6 @@
 
 using namespace std;
 
-ImageIO* img;
 // vector<vector<float> > gaussian_filter {{0.01, 0.08, 0.01}, {0.08, 0.64, 0.08}, {0.01, 0.08, 0.01}};
 // vector<vector<float> > gaussian_filter {{0.0625, 0.125, 0.0625}, {0.125, .25, 0.125}, {0.0625, 0.125, 0.0625}};
 vector<vector<float> > gaussian_filter {{0.077847, 0.123317, 0.077847}, {0.123317, 0.195346, 0.123317}, {0.077847, 0.123317, 0.077847}};
@@ -15,7 +14,7 @@ bool isNeighbor(int r, int c, int h, int w){
 }
 
 int main(){
-    img = new ImageIO("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly/images/test.ppm");
+    Image* img = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/test.ppm");
     Image output = Image(img->getWidth(), img->getHeight(), 255);
 
     cout << img->getHeight() << endl;
@@ -25,9 +24,7 @@ int main(){
 
     for (int row = STEP_SIZE; row < img->getHeight(); row++){
         for (int col = STEP_SIZE; col < img->getWidth(); col++){
-            // Color new_val = Color(0.0, 0.0, 0.0);
-            float* orig_colors = img->getRGB(row, col);
-            Color new_val = Color(orig_colors[0], orig_colors[1], orig_colors[2]);
+            Color new_val = Color();
 
             vector<int> R_DELTA {-1, -1, -1, 0, 0, 0, 1, 1, 1};
             vector<int> C_DELTA {-1, 0, 1, -1, 0, 1, -1, 0, 1};
@@ -37,8 +34,8 @@ int main(){
                 int new_c = col+C_DELTA[i];
                 if(isNeighbor(new_r, new_c, img->getHeight(), img->getWidth())){
                     float scale = gaussian_filter[1+R_DELTA[i]][1+C_DELTA[i]];
-                    float* pixel_colors = img->getRGB(new_r, new_c);
-                    Color temp_color = Color(pixel_colors[0]*scale, pixel_colors[1]*scale, pixel_colors[2]*scale);
+                    Color pixel_colors = img->getRGB(new_r, new_c);
+                    Color temp_color = Color(pixel_colors.get_r()*scale, pixel_colors.get_g()*scale, pixel_colors.get_b()*scale);
                     new_val = new_val + temp_color;
                 }
             }
@@ -46,5 +43,5 @@ int main(){
             output.addColor(col, row, new_val);
         }
     }
-    output.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly/images/gauss.ppm");
+    output.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/gauss.ppm");
 }

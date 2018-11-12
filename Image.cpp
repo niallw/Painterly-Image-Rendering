@@ -1,21 +1,9 @@
-//
 //  Image.cpp
-//  RayTracer
 //
-//  Created by Peck, Tabitha on 10/15/16.
-//  Copyright © 2016 Davidson College. All rights reserved.
-//
-
-#include "Image.hpp"
-
-//
-//  ImageProcessor.cpp
-//  Resolution
-//
-//  Created by Tabitha Peck on 7/23/13.
-//  Copyright (c) 2013 Tabitha Peck. All rights reserved.
+//  Created by Niall and Jimmy on November 11, 2018.
 //  based on code from stack overflow: http://stackoverflow.com/questions/2693631/read-ppm-file-and-store-it-in-an-array-coded-with-c
 
+#include "Image.hpp"
 
 /*
  Create a new blank image
@@ -33,55 +21,50 @@ Image::Image(int w, int h, int m){
     }
 }
 
-// Image::Image(const char* file_name){
+Image::Image(const char* file_name){
+    FILE* file;
+    char buff[16];
+    float r, g, b;
     
-//     FILE* file;
-//     char buff[16];
-//     float r, g, b;
+    file = fopen(file_name, "r"); // open file for reading
     
-//     file = fopen(file_name, "r"); // open file for reading
+    if(!file){
+        fprintf(stderr, "Unable to open file %s", file_name);
+        exit(1);
+    }
     
-//     if(!file){
-//         fprintf(stderr, "Unable to open file %s", file_name);
-//         exit(1);
-//     }
+    fscanf(file, "%s%*[^\n]%*c", m_magic_number); //read magic number and white space
     
-//     fscanf(file, "%s%*[^\n]%*c", m_magic_number); //read magic number and white space
+    if(m_magic_number[0] != 'P' || m_magic_number[1] != '3'){
+        printf("Incorrect file type");
+        exit(1);
+    }
     
-//     if(m_magic_number[0] != 'P' || m_magic_number[1] != '3'){
-//         printf("Incorrect file type");
-//         exit(1);
-//     }
+    //check for comments
+    fscanf(file, "%s", buff);
+    while (strncmp(buff, "#", 1) == 0) {
+        fscanf(file, "%s%*[^\n]%*c", buff);
+    }
     
-//     //check for comments
-//     fscanf(file, "%s", buff);
-//     while (strncmp(buff, "#", 1) == 0) {
-//         fscanf(file, "%s%*[^\n]%*c", buff);
-//     }
+    if (fscanf(file, "%d %d %d", &m_width, &m_height, &m_max) != 3) {
+        fprintf(stderr, "Invalid image size (error loading '%s')\n", file_name);
+        exit(1);
+    }
     
-//     if (fscanf(file, "%d %d %d", &m_width, &m_height, &m_max) != 3) {
-//         fprintf(stderr, "Invalid image size (error loading '%s')\n", file_name);
-//         exit(1);
-//     }
+    m_image = new Color* [m_height];
+    for(int i = 0; i < m_height; i++) {
+        m_image[i] = new Color[m_width];
+        for(int j = 0; j< m_width; j++){
+            if(fscanf(file, "%f %f %f", &r, &g, &b) != 3){
+                fprintf(stderr, "Invalid pixel reading\n");
+                exit(1);
+            }
+            m_image[i][j] = Color(r/255, g/255, b/255);
+        }
+    }
     
-//     image = new float **[height];
-//     for(int i = 0; i < height; i++) {
-//         image[i] = new float *[width];
-//         for(int j = 0; j<width; j++){
-//             image[i][j] = new float[3];
-//             if(fscanf(file, "%f %f %f", &r, &g, &b) != 3){
-//                 fprintf(stderr, "Invalid pixel reading\n");
-//                 exit(1);
-//             }
-//             image[i][j][0] = r/255;
-//             image[i][j][1] = g/255;
-//             image[i][j][2] = b/255;
-//         }
-//     }
-    
-//     fclose(file);
-//     imageDisplayArray = NULL;
-// }
+    fclose(file);
+}
 
 Image::~Image(void){
     for(int i = 0; i < m_width; i++){
@@ -111,6 +94,10 @@ Color** Image::getImage(){
     return m_image;
 }
 
+Color Image::getRGB(int r, int c){
+    return m_image[r][c];
+}
+
 void Image::writeImage(const char* file_name){
     FILE* file;
     file = fopen(file_name, "w");
@@ -121,7 +108,7 @@ void Image::writeImage(const char* file_name){
     
     // your code goes here
     fprintf(file, "P3\n");
-    fprintf(file, "# CREATOR: Tabitha C. Peck\n");
+    fprintf(file, "# CREATOR: Niall Williams and Jimmy Plaut\n");
     
     fprintf(file, "%d %d\n%d\n", m_width, m_height, m_max);
     for(int i = 0; i < m_height; i++){

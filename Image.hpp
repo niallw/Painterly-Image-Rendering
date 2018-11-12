@@ -13,6 +13,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "Color.hpp"
 
 using namespace std;
@@ -20,11 +21,13 @@ using namespace std;
 class Image{
 public:
     Image(int w, int h, int max);
+    Image(const char* file_name);
     ~Image(void);
     void writeImage(const char* file_name);
     int getWidth();
     int getHeight();
     Color** getImage();
+    Color getRGB(int, int);
     void setColor(int, int, Color);
     void addColor(int, int, Color);
     
