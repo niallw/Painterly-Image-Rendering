@@ -98,6 +98,10 @@ int ImageIO::getHeight(){
     return height;
 }
 
+float* ImageIO::getRGB(int r, int c){
+    return image[r][c];
+}
+
 float*** ImageIO::getImage(){
     return image;
 }

@@ -31,6 +31,7 @@ public:
     int getWidth();
     int getHeight();
     float*** getImage();
+    float* getRGB(int, int);
     float* getImageDisplayArray();
 
 private:
