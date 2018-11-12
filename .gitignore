@@ -1,0 +1,10 @@
+*.png
+*.PNG
+*.jpg
+*.JPG
+*.jpeg
+*.JPEG
+*.ppm
+*.PPM
+/images
+/build

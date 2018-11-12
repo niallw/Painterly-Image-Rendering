@@ -6,7 +6,9 @@
 using namespace std;
 
 ImageIO* img;
-vector<vector<float> > gaussian_filter {{0.01, 0.08, 0.01}, {0.08, 0.64, 0.08}, {0.01, 0.08, 0.01}};
+// vector<vector<float> > gaussian_filter {{0.01, 0.08, 0.01}, {0.08, 0.64, 0.08}, {0.01, 0.08, 0.01}};
+// vector<vector<float> > gaussian_filter {{0.0625, 0.125, 0.0625}, {0.125, .25, 0.125}, {0.0625, 0.125, 0.0625}};
+vector<vector<float> > gaussian_filter {{0.077847, 0.123317, 0.077847}, {0.123317, 0.195346, 0.123317}, {0.077847, 0.123317, 0.077847}};
 
 bool isNeighbor(int r, int c, int h, int w){
     return (r >= 0 && r < h && c >= 0 && c < w);
@@ -27,8 +29,8 @@ int main(){
             float* orig_colors = img->getRGB(row, col);
             Color new_val = Color(orig_colors[0], orig_colors[1], orig_colors[2]);
 
-            vector<int> R_DELTA {-1, -1, -1, 0, 0, 1, 1, 1};
-            vector<int> C_DELTA {-1, 0, 1, -1, 1, -1, 0, 1};
+            vector<int> R_DELTA {-1, -1, -1, 0, 0, 0, 1, 1, 1};
+            vector<int> C_DELTA {-1, 0, 1, -1, 0, 1, -1, 0, 1};
 
             for (int i = 0; i < R_DELTA.size(); i++){
                 int new_r = row+R_DELTA[i];
