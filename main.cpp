@@ -5,13 +5,16 @@
 
 using namespace std;
 
-// vector<vector<float> > gaussian_filter {{0.01, 0.08, 0.01}, {0.08, 0.64, 0.08}, {0.01, 0.08, 0.01}};
-vector<vector<float> > gaussian_filter {{0.0625, 0.125, 0.0625}, {0.125, .25, 0.125}, {0.0625, 0.125, 0.0625}};
-// vector<vector<float> > gaussian_filter {{0.077847, 0.123317, 0.077847}, {0.123317, 0.195346, 0.123317}, {0.077847, 0.123317, 0.077847}};
 int height, width;
 
-vector<vector<float>> calculate_kernel(int radius){
-    float sigma = 5;
+/**Calculate the 2D Gaussian kernel with the given radius and 
+ * standard deviation.
+ * 
+ * radius - radius of the kernel (and brush).
+ * sigma - standard deviation of the kernel.
+ */
+vector<vector<float>> calculate_kernel(int radius, int std_dev){
+    float sigma = std_dev;
     int W = 2*radius+1;
     vector<vector<float>> kernel;
     float mean = W/2;
@@ -24,8 +27,7 @@ vector<vector<float>> calculate_kernel(int radius){
             temp.push_back(exp(-0.5 * (pow((x-mean)/sigma, 2.0) + pow((y-mean)/sigma,2.0)))
                             / (2 * M_PI * sigma * sigma));
 
-            // Accumulate the kernel values
-            sum += temp[temp.size() - 1];
+            sum += temp[temp.size() - 1]; // Accumulate the kernel values
         }
         kernel.push_back(temp);
     }
@@ -40,78 +42,24 @@ vector<vector<float>> calculate_kernel(int radius){
     return kernel;
 }
 
-vector<float> calculate_1D_kernel(int radius){
-    float sigma = 100;
-    int W = 2*radius+1;
-    vector<float> kernel;
-    float mean = W/2;
-    float sum = 0.0; // For accumulating the kernel values
-
-    // Create the kernel
-    for (int x = 0; x < W; x++) {
-        float val = exp( -0.5 * (pow((x-mean)/sigma, 2.0)) )
-                        / (2 * M_PI * sigma * sigma);
-        // cout<< "before: " << val<<endl;
-        // val /= 2;
-        // cout<< "after: " << val<<endl;
-        kernel.push_back(val);
-        // kernel[kernel.size()-1] = kernel.back()/2;
-        // cout << "aaa: "<<kernel.back()<<endl<<endl;
-        // Accumulate the kernel values
-        sum += kernel.back();
-    }
-
-    // Normalize the kernel
-    for (int x = 0; x < W; x++) {
-        kernel[x] /= sum;
-    }
-
-    float tsum=0.;
-    for (int i = 0; i < W; i++){
-        cout << "inside i: "<<kernel[i]<<endl;
-        tsum+=kernel[i];
-    }
-    cout<<"inside sum: "<<tsum<<endl;
-
-    return kernel;
-}
-
-
-Image* blur_image(Image* input_image, int std_dev, int radius){
+/**Convolve over the image with a Gaussian kernel to apply
+ * a Gaussian blur to the image.
+ * 
+ * input_image - image to blur.
+ * radius - radius of the kernel (and brush).
+ * sigma - standard deviation of the kernel.
+ */
+Image* blur_image(Image* input_image, int radius, int std_dev){
     Image* output = new Image(width, height, 255);
     int r = radius;
-    // // 1D
-    // vector<int> DELTA;
-    // for (int i = -r; i <= r; i++){
-    //     DELTA.push_back(i);
-    //     cout <<"delta i: "<<DELTA.back()<<endl;
-    // }
-    // vector<float> kernel = calculate_1D_kernel(r);
+    vector<vector<float>> kernel = calculate_kernel(r, std_dev);
 
-
-    // 2D
-    vector<vector<int>> DELTA;
-    for (int i = 0; i < 2*r+1; i++){
-        vector<int> temp;
-        for (int j = 0; j < 2*r+1; j++){
-            temp.push_back(i);
-            // cout <<"delta i: "<<DELTA.back()<<endl;
-        }
-    }
-    vector<vector<float>> kernel = calculate_kernel(r);
-    float sum = 0.;
-    for (int i = 0; i < 2*r+1; i++){
-        for (int j = 0; j < 2*r+1; j++){
-            cout << "i: " << kernel[i][j] << endl;
-            sum += kernel[i][j];
-        }
-    }
-    cout << "sum: "<<sum<<endl<<endl;
-
+    // Convolve!!!
     for (int row = 0; row < height; row++){
         for (int col = 0; col < width; col++){
             Color new_val = Color();
 
+            // Weighted sum of neighbors
             for (int i = 0; i < 2*r+1; i++){
                 for (int j = 0; j < 2*r+1; j++){
                     int R_DELTA = i-r;
@@ -122,7 +70,7 @@ Image* blur_image(Image* input_image, int std_dev, int radius){
                     int new_r = row + R_DELTA;
                     int new_c = col + C_DELTA;
 
-                    // in bounds
+                    // Ignore pixels on the outside FIXME: change this to do mirror?
                     if (new_r >= 0 && new_r < height && new_c >= 0 && new_c < width){
                         pixel_color = input_image->getRGB(new_r, new_c);
                         pixel_color = pixel_color * scale;
@@ -135,62 +83,7 @@ Image* blur_image(Image* input_image, int std_dev, int radius){
         }
     }
 
-    // // Horizontal blur
-    // for (int row = 0; row < height; row++){
-    //     for (int col = 0; col < width; col++){
-    //         Color new_val = Color();
-
-    //         for (int i = 0; i < 2*r+1; i++){
-    //             int new_c = col+DELTA[i];
-    //             float scale = kernel[i];
-    //             Color pixel_colors;
-
-    //             if (new_c < 0){
-    //                 pixel_colors = input_image->getRGB(row, -1*new_c);
-    //             }
-    //             else if (new_c >= width){
-    //                 pixel_colors = input_image->getRGB(row, (width-1)-(new_c%(width-1)));
-    //             }
-    //             else{
-    //                 pixel_colors = input_image->getRGB(row, new_c);
-    //             }
-    //             pixel_colors = pixel_colors * scale;
-    //             new_val = new_val + pixel_colors;
-    //         }
-
-    //         output->addColor(col, row, new_val);
-    //     }
-    // }
-
-    // // Vertical blur
-    // for (int row = 0; row < height; row++){
-    //     for (int col = 0; col < width; col++){
-    //         Color new_val = Color();
-
-    //         for (int i = 0; i < 2*r+1; i++){
-    //             int new_r = row+DELTA[i];
-    //             float scale = kernel[i];
-    //             Color pixel_colors;
-
-    //             if (new_r < 0){
-    //                 pixel_colors = output->getRGB(-1*new_r, col);
-    //             }
-    //             else if (new_r >= height){
-    //                 // cout << new_r <<" | "<<col<<endl;
-    //                 pixel_colors = output->getRGB((height-1) - (new_r%(height-1)), col);
-    //             }
-    //             else{
-    //                 // pixel_colors = output->getRGB(new_r, col);
-    //             }
-    //             pixel_colors = pixel_colors * scale;
-    //             new_val = new_val + pixel_colors;
-    //         }
-
-    //         output->addColor(col, row, new_val);
-    //     }
-    // }
-
-    output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/cat_blur.ppm");
+    output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/man_blur_high_stddev.ppm");
     return output;
 }
 
@@ -199,41 +92,12 @@ bool is_neighbor(int r, int c, int h, int w){
 }
 
 int main(){
-    Image* input = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/cat_blur.ppm");
+    Image* input = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/man.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << height << endl;
     cout << width << endl;
-    Image* output = new Image(width, height, 255);
+    Image* output;
 
-    output = blur_image(input, 1, 2);
+    output = blur_image(input, 5, 1000);
 }
-
-// vector<vector<float>> test = calculate_kernel(3);
-// for(int i = 0; i < 3; i++){
-//     for (int j = 0; j < 3; j++){
-//         cout << test[i][j] << endl;
-//     }
-// }
-
-// for (int row = STEP_SIZE; row < input->getHeight(); row++){
-//     for (int col = STEP_SIZE; col < input->getWidth(); col++){
-//         Color new_val = Color();
-//         vector<int> R_DELTA {-1, -1, -1, 0, 0, 0, 1, 1, 1};
-//         vector<int> C_DELTA {-1, 0, 1, -1, 0, 1, -1, 0, 1};
-
-//         for (int i = 0; i < R_DELTA.size(); i++){
-//             int new_r = row+R_DELTA[i];
-//             int new_c = col+C_DELTA[i];
-
-//             if(is_neighbor(new_r, new_c, input->getHeight(), input->getWidth())){
-//                 float scale = gaussian_filter[1+R_DELTA[i]][1+C_DELTA[i]];
-//                 Color pixel_colors = input->getRGB(new_r, new_c);
-//                 Color temp_color = Color(pixel_colors.get_r()*scale, pixel_colors.get_g()*scale, pixel_colors.get_b()*scale);
-//                 new_val = new_val + temp_color;
-//             }
-//         }
-
-//         output->addColor(col, row, new_val);
-//     }
-// }
