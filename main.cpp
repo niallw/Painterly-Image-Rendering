@@ -2,6 +2,7 @@
 #include <vector>
 #include <cmath>
 #include <algorithm>
+#include <string>
 
 #include "Image.hpp"
 #include "Stroke.hpp"
@@ -9,9 +10,10 @@
 using namespace std;
 
 int height, width;
+string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/";
 
 int main(){
-    Image* input = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/man.ppm");
+    Image* input = new Image(path + "man.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << height << endl;
@@ -20,7 +22,21 @@ int main(){
 
     Image* canvas = paint(input, canvas, brush_radii);
 
-    canvas->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/output.ppm");
+    canvas->writeImage(path + "output.ppm");
+}
+
+Image* paint(Image* original_image, Image* canvas, vector<int> radii){
+    sort(radii.begin(), radii.end(), greater<int>()); // Descending order
+    Image* output;
+
+    for (int brush_size : radii){
+        Image* reference_image = blur_image(original_image, brush_size, 1);
+        paint_layer(canvas, reference_image, brush_size);
+    }
+}
+
+void paint_layer(Image* canvas, Image* reference_image, int brush_size){
+    // vector<Stroke*> strokes;
 }
 
 /**Calculate the 2D Gaussian kernel with the given radius and 
@@ -103,18 +119,4 @@ Image* blur_image(Image* input_image, int radius, int std_dev){
 
     // output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/man_blur_high_stddev.ppm");
     return output;
-}
-
-void paint_layer(Image* canvas, Image* reference_image, int brush_size){
-    // vector<Stroke*> strokes;
-}
-
-Image* paint(Image* original_image, Image* canvas, vector<int> radii){
-    sort(radii.begin(), radii.end(), greater<int>()); // Descending order
-    Image* output;
-
-    for (int brush_size : radii){
-        Image* reference_image = blur_image(original_image, brush_size, 1);
-        paint_layer(canvas, reference_image, brush_size);
-    }
 }

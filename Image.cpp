@@ -21,12 +21,12 @@ Image::Image(int w, int h, int m){
     }
 }
 
-Image::Image(const char* file_name){
+Image::Image(string file_name){
     FILE* file;
     char buff[16];
     float r, g, b;
     
-    file = fopen(file_name, "r"); // open file for reading
+    file = fopen(file_name.c_str(), "r"); // open file for reading
     
     if(!file){
         fprintf(stderr, "Unable to open file %s", file_name);
@@ -98,9 +98,9 @@ Color Image::getRGB(int r, int c){
     return m_image[r][c];
 }
 
-void Image::writeImage(const char* file_name){
+void Image::writeImage(string file_name){
     FILE* file;
-    file = fopen(file_name, "w");
+    file = fopen(file_name.c_str(), "w");
     if(!file){
         fprintf(stderr, "Unable to open file %s", file_name);
         exit(1);

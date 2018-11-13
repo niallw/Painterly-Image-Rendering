@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string>
 #include "Color.hpp"
 
 using namespace std;
@@ -21,9 +22,9 @@ using namespace std;
 class Image{
 public:
     Image(int w, int h, int max);
-    Image(const char* file_name);
+    Image(string file_name);
     ~Image(void);
-    void writeImage(const char* file_name);
+    void writeImage(string file_name);
     int getWidth();
     int getHeight();
     Color** getImage();
