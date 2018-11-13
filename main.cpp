@@ -144,7 +144,7 @@ Image* blur_image(Image* input_image, int std_dev, int radius){
         }
     }
 
-    output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/gauss1d.ppm");
+    output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sphere_blur.ppm");
     return output;
 }
 
@@ -153,14 +153,14 @@ bool is_neighbor(int r, int c, int h, int w){
 }
 
 int main(){
-    Image* input = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/gauss1d.ppm");
+    Image* input = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/test2.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << height << endl;
     cout << width << endl;
     Image* output = new Image(width, height, 255);
 
-    output = blur_image(input, 1, 5);
+    output = blur_image(input, 1, 50);
 }
 
 // vector<vector<float>> test = calculate_kernel(3);
