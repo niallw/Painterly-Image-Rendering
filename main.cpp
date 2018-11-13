@@ -11,8 +11,8 @@ vector<vector<float> > gaussian_filter {{0.0625, 0.125, 0.0625}, {0.125, .25, 0.
 int height, width;
 
 vector<vector<float>> calculate_kernel(int radius){
-    float sigma = 1;
-    int W = radius;
+    float sigma = 5;
+    int W = 2*radius+1;
     vector<vector<float>> kernel;
     float mean = W/2;
     float sum = 0.0; // For accumulating the kernel values
@@ -41,7 +41,7 @@ vector<vector<float>> calculate_kernel(int radius){
 }
 
 vector<float> calculate_1D_kernel(int radius){
-    float sigma = 1;
+    float sigma = 100;
     int W = 2*radius+1;
     vector<float> kernel;
     float mean = W/2;
@@ -49,9 +49,13 @@ vector<float> calculate_1D_kernel(int radius){
 
     // Create the kernel
     for (int x = 0; x < W; x++) {
-        kernel.push_back(exp( -0.5 * (pow((x-mean)/sigma, 2.0)) )
-                        / (2 * M_PI * sigma * sigma));
-
+        float val = exp( -0.5 * (pow((x-mean)/sigma, 2.0)) )
+                        / (2 * M_PI * sigma * sigma);
+        // cout<< "before: " << val<<endl;
+        // val /= 2;
+        // cout<< "after: " << val<<endl;
+        kernel.push_back(val);
+        // kernel[kernel.size()-1] = kernel.back()/2;
         // cout << "aaa: "<<kernel.back()<<endl<<endl;
         // Accumulate the kernel values
         sum += kernel.back();
@@ -76,75 +80,117 @@ vector<float> calculate_1D_kernel(int radius){
 Image* blur_image(Image* input_image, int std_dev, int radius){
     Image* output = new Image(width, height, 255);
     int r = radius;
-    vector<int> DELTA;
-    for (int i = -r; i <= r; i++){
-        DELTA.push_back(i);
-        cout <<"delta i: "<<DELTA.back()<<endl;
-    }
+    // // 1D
+    // vector<int> DELTA;
+    // for (int i = -r; i <= r; i++){
+    //     DELTA.push_back(i);
+    //     cout <<"delta i: "<<DELTA.back()<<endl;
+    // }
+    // vector<float> kernel = calculate_1D_kernel(r);
 
-    vector<float> kernel = calculate_1D_kernel(r);
+
+    // 2D
+    vector<vector<int>> DELTA;
+    for (int i = 0; i < 2*r+1; i++){
+        vector<int> temp;
+        for (int j = 0; j < 2*r+1; j++){
+            temp.push_back(i);
+            // cout <<"delta i: "<<DELTA.back()<<endl;
+        }
+    }
+    vector<vector<float>> kernel = calculate_kernel(r);
     float sum = 0.;
     for (int i = 0; i < 2*r+1; i++){
-        cout << "i: " << kernel[i] << endl;
-        sum += kernel[i];
+        for (int j = 0; j < 2*r+1; j++){
+            cout << "i: " << kernel[i][j] << endl;
+            sum += kernel[i][j];
+        }
     }
     cout << "sum: "<<sum<<endl<<endl;
 
-    // Vertical blur
     for (int row = 0; row < height; row++){
         for (int col = 0; col < width; col++){
             Color new_val = Color();
 
             for (int i = 0; i < 2*r+1; i++){
-                int new_r = row+DELTA[i];
-                float scale = kernel[i];
-                Color pixel_colors;
+                for (int j = 0; j < 2*r+1; j++){
+                    int R_DELTA = i-r;
+                    int C_DELTA = j-r;
+                    float scale = kernel[i][j];
+                    Color pixel_color;
 
-                if (new_r < 0){
-                    pixel_colors = output->getRGB(-1*new_r, col);
+                    int new_r = row + R_DELTA;
+                    int new_c = col + C_DELTA;
+
+                    // in bounds
+                    if (new_r >= 0 && new_r < height && new_c >= 0 && new_c < width){
+                        pixel_color = input_image->getRGB(new_r, new_c);
+                        pixel_color = pixel_color * scale;
+                        new_val = new_val + pixel_color;
+                    }
                 }
-                else if (new_r >= height){
-                    pixel_colors = output->getRGB((height-1) - (new_r%(height-1)), col);
-                }
-                else{
-                    pixel_colors = output->getRGB(new_r, col);
-                }
-                pixel_colors = pixel_colors * scale;
-                new_val = new_val + pixel_colors;
             }
 
             output->addColor(col, row, new_val);
         }
     }
 
-    // Horizontal blur
-    for (int row = 0; row < height; row++){
-        for (int col = 0; col < width; col++){
-            Color new_val = Color();
+    // // Horizontal blur
+    // for (int row = 0; row < height; row++){
+    //     for (int col = 0; col < width; col++){
+    //         Color new_val = Color();
 
-            for (int i = 0; i < 2*r+1; i++){
-                int new_c = col+DELTA[i];
-                float scale = kernel[i];
-                Color pixel_colors;
+    //         for (int i = 0; i < 2*r+1; i++){
+    //             int new_c = col+DELTA[i];
+    //             float scale = kernel[i];
+    //             Color pixel_colors;
 
-                if (new_c < 0){
-                    pixel_colors = input_image->getRGB(row, -1*new_c);
-                }
-                else if (new_c >= width){
-                    pixel_colors = input_image->getRGB(row, (width-1)-(new_c%(width-1)));
-                }
-                else{
-                    pixel_colors = input_image->getRGB(row, new_c);
-                }
-                pixel_colors = pixel_colors * scale;
-                new_val = new_val + pixel_colors;
-            }
+    //             if (new_c < 0){
+    //                 pixel_colors = input_image->getRGB(row, -1*new_c);
+    //             }
+    //             else if (new_c >= width){
+    //                 pixel_colors = input_image->getRGB(row, (width-1)-(new_c%(width-1)));
+    //             }
+    //             else{
+    //                 pixel_colors = input_image->getRGB(row, new_c);
+    //             }
+    //             pixel_colors = pixel_colors * scale;
+    //             new_val = new_val + pixel_colors;
+    //         }
 
-            output->addColor(col, row, new_val);
-        }
-    }
+    //         output->addColor(col, row, new_val);
+    //     }
+    // }
 
-    output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sphere_blur.ppm");
+    // // Vertical blur
+    // for (int row = 0; row < height; row++){
+    //     for (int col = 0; col < width; col++){
+    //         Color new_val = Color();
+
+    //         for (int i = 0; i < 2*r+1; i++){
+    //             int new_r = row+DELTA[i];
+    //             float scale = kernel[i];
+    //             Color pixel_colors;
+
+    //             if (new_r < 0){
+    //                 pixel_colors = output->getRGB(-1*new_r, col);
+    //             }
+    //             else if (new_r >= height){
+    //                 // cout << new_r <<" | "<<col<<endl;
+    //                 pixel_colors = output->getRGB((height-1) - (new_r%(height-1)), col);
+    //             }
+    //             else{
+    //                 // pixel_colors = output->getRGB(new_r, col);
+    //             }
+    //             pixel_colors = pixel_colors * scale;
+    //             new_val = new_val + pixel_colors;
+    //         }
+
+    //         output->addColor(col, row, new_val);
+    //     }
+    // }
+
+    output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/cat_blur.ppm");
     return output;
 }
 
@@ -153,14 +199,14 @@ bool is_neighbor(int r, int c, int h, int w){
 }
 
 int main(){
-    Image* input = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/test2.ppm");
+    Image* input = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/cat_blur.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << height << endl;
     cout << width << endl;
     Image* output = new Image(width, height, 255);
 
-    output = blur_image(input, 1, 50);
+    output = blur_image(input, 1, 2);
 }
 
 // vector<vector<float>> test = calculate_kernel(3);
