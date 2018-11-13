@@ -74,56 +74,8 @@ vector<float> calculate_1D_kernel(int radius){
 
 
 Image* blur_image(Image* input_image, int std_dev, int radius){
-
-}
-
-bool is_neighbor(int r, int c, int h, int w){
-    return (r >= 0 && r < h && c >= 0 && c < w);
-}
-
-int main(){
-    Image* input = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/test.ppm");
-    height = input->getHeight();
-    width = input->getWidth();
     Image* output = new Image(width, height, 255);
-
-    cout << input->getHeight() << endl;
-    cout << input->getWidth() << endl;
-
-    int STEP_SIZE = 2;
-
-    // vector<vector<float>> test = calculate_kernel(3);
-    // for(int i = 0; i < 3; i++){
-    //     for (int j = 0; j < 3; j++){
-    //         cout << test[i][j] << endl;
-    //     }
-    // }
-
-    // for (int row = STEP_SIZE; row < input->getHeight(); row++){
-    //     for (int col = STEP_SIZE; col < input->getWidth(); col++){
-    //         Color new_val = Color();
-    //         vector<int> R_DELTA {-1, -1, -1, 0, 0, 0, 1, 1, 1};
-    //         vector<int> C_DELTA {-1, 0, 1, -1, 0, 1, -1, 0, 1};
-
-    //         for (int i = 0; i < R_DELTA.size(); i++){
-    //             int new_r = row+R_DELTA[i];
-    //             int new_c = col+C_DELTA[i];
-
-    //             if(is_neighbor(new_r, new_c, input->getHeight(), input->getWidth())){
-    //                 float scale = gaussian_filter[1+R_DELTA[i]][1+C_DELTA[i]];
-    //                 Color pixel_colors = input->getRGB(new_r, new_c);
-    //                 Color temp_color = Color(pixel_colors.get_r()*scale, pixel_colors.get_g()*scale, pixel_colors.get_b()*scale);
-    //                 new_val = new_val + temp_color;
-    //             }
-    //         }
-
-    //         output->addColor(col, row, new_val);
-    //     }
-    // }
-
-    int r = 5;
-    int C_DELTA[5] = {-r, -r/2, 0, r/2, r};
-    int R_DELTA[5] = {-r, -r/2, 0, r/2, r};
+    int r = radius;
     vector<int> DELTA;
     for (int i = -r; i <= r; i++){
         DELTA.push_back(i);
@@ -176,13 +128,13 @@ int main(){
                 Color pixel_colors;
 
                 if (new_c < 0){
-                    pixel_colors = input->getRGB(row, -1*new_c);
+                    pixel_colors = input_image->getRGB(row, -1*new_c);
                 }
                 else if (new_c >= width){
-                    pixel_colors = input->getRGB(row, (width-1)-(new_c%(width-1)));
+                    pixel_colors = input_image->getRGB(row, (width-1)-(new_c%(width-1)));
                 }
                 else{
-                    pixel_colors = input->getRGB(row, new_c);
+                    pixel_colors = input_image->getRGB(row, new_c);
                 }
                 pixel_colors = pixel_colors * scale;
                 new_val = new_val + pixel_colors;
@@ -193,4 +145,49 @@ int main(){
     }
 
     output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/gauss1d.ppm");
+    return output;
 }
+
+bool is_neighbor(int r, int c, int h, int w){
+    return (r >= 0 && r < h && c >= 0 && c < w);
+}
+
+int main(){
+    Image* input = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/gauss1d.ppm");
+    height = input->getHeight();
+    width = input->getWidth();
+    cout << height << endl;
+    cout << width << endl;
+    Image* output = new Image(width, height, 255);
+
+    output = blur_image(input, 1, 5);
+}
+
+// vector<vector<float>> test = calculate_kernel(3);
+// for(int i = 0; i < 3; i++){
+//     for (int j = 0; j < 3; j++){
+//         cout << test[i][j] << endl;
+//     }
+// }
+
+// for (int row = STEP_SIZE; row < input->getHeight(); row++){
+//     for (int col = STEP_SIZE; col < input->getWidth(); col++){
+//         Color new_val = Color();
+//         vector<int> R_DELTA {-1, -1, -1, 0, 0, 0, 1, 1, 1};
+//         vector<int> C_DELTA {-1, 0, 1, -1, 0, 1, -1, 0, 1};
+
+//         for (int i = 0; i < R_DELTA.size(); i++){
+//             int new_r = row+R_DELTA[i];
+//             int new_c = col+C_DELTA[i];
+
+//             if(is_neighbor(new_r, new_c, input->getHeight(), input->getWidth())){
+//                 float scale = gaussian_filter[1+R_DELTA[i]][1+C_DELTA[i]];
+//                 Color pixel_colors = input->getRGB(new_r, new_c);
+//                 Color temp_color = Color(pixel_colors.get_r()*scale, pixel_colors.get_g()*scale, pixel_colors.get_b()*scale);
+//                 new_val = new_val + temp_color;
+//             }
+//         }
+
+//         output->addColor(col, row, new_val);
+//     }
+// }
