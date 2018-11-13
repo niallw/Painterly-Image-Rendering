@@ -1,14 +1,18 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include <algorithm>
+
 #include "Image.hpp"
+#include "Stroke.hpp"
 
 using namespace std;
 
 int height, width;
 
 /**Calculate the 2D Gaussian kernel with the given radius and 
- * standard deviation.
+ * standard deviation. Note that the kernel is an approximation,
+ * but it's pretty close to the real thing regardless.
  * 
  * radius - radius of the kernel (and brush).
  * sigma - standard deviation of the kernel.
@@ -24,6 +28,7 @@ vector<vector<float>> calculate_kernel(int radius, int std_dev){
     for (int x = 0; x < W; ++x) {
         vector<float> temp;
         for (int y = 0; y < W; ++y) {
+            // Math to calculate kernel values :)
             temp.push_back(exp(-0.5 * (pow((x-mean)/sigma, 2.0) + pow((y-mean)/sigma,2.0)))
                             / (2 * M_PI * sigma * sigma));
 
@@ -83,12 +88,22 @@ Image* blur_image(Image* input_image, int radius, int std_dev){
         }
     }
 
-    output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/man_blur_high_stddev.ppm");
+    // output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/man_blur_high_stddev.ppm");
     return output;
 }
 
-bool is_neighbor(int r, int c, int h, int w){
-    return (r >= 0 && r < h && c >= 0 && c < w);
+void paint_layer(Image* canvas, Image* reference_image, int brush_size){
+    // vector<Stroke*> strokes;
+}
+
+Image* paint(Image* original_image, Image* canvas, vector<int> radii){
+    sort(radii.begin(), radii.end(), greater<int>()); // Descending order
+    Image* output;
+
+    for (int brush_size : radii){
+        Image* reference_image = blur_image(original_image, brush_size, 1);
+        paint_layer(canvas, reference_image, brush_size);
+    }
 }
 
 int main(){
@@ -97,7 +112,9 @@ int main(){
     width = input->getWidth();
     cout << height << endl;
     cout << width << endl;
-    Image* output;
+    vector<int> brush_radii {2, 3};
 
-    output = blur_image(input, 5, 1000);
+    Image* canvas = paint(input, canvas, brush_radii);
+
+    canvas->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/output.ppm");
 }
