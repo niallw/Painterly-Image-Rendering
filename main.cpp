@@ -10,6 +10,19 @@ using namespace std;
 
 int height, width;
 
+int main(){
+    Image* input = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/man.ppm");
+    height = input->getHeight();
+    width = input->getWidth();
+    cout << height << endl;
+    cout << width << endl;
+    vector<int> brush_radii {2, 3};
+
+    Image* canvas = paint(input, canvas, brush_radii);
+
+    canvas->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/output.ppm");
+}
+
 /**Calculate the 2D Gaussian kernel with the given radius and 
  * standard deviation. Note that the kernel is an approximation,
  * but it's pretty close to the real thing regardless.
@@ -104,17 +117,4 @@ Image* paint(Image* original_image, Image* canvas, vector<int> radii){
         Image* reference_image = blur_image(original_image, brush_size, 1);
         paint_layer(canvas, reference_image, brush_size);
     }
-}
-
-int main(){
-    Image* input = new Image("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/man.ppm");
-    height = input->getHeight();
-    width = input->getWidth();
-    cout << height << endl;
-    cout << width << endl;
-    vector<int> brush_radii {2, 3};
-
-    Image* canvas = paint(input, canvas, brush_radii);
-
-    canvas->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/output.ppm");
 }
