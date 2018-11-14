@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <string>
+#include <cmath>
+#include <vector>
 #include "Color.hpp"
 
 using namespace std;
@@ -31,6 +33,8 @@ public:
     Color getRGB(int, int);
     void setColor(int, int, Color);
     void addColor(int, int, Color);
+
+    vector<vector<float>> operator-(Image);
     
 private:
     char m_magic_number[2];

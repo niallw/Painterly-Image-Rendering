@@ -29,7 +29,7 @@ Image::Image(string file_name){
     file = fopen(file_name.c_str(), "r"); // open file for reading
     
     if(!file){
-        fprintf(stderr, "Unable to open file %s", file_name);
+        fprintf(stderr, "Unable to open file %s", file_name.c_str());
         exit(1);
     }
     
@@ -47,7 +47,7 @@ Image::Image(string file_name){
     }
     
     if (fscanf(file, "%d %d %d", &m_width, &m_height, &m_max) != 3) {
-        fprintf(stderr, "Invalid image size (error loading '%s')\n", file_name);
+        fprintf(stderr, "Invalid image size (error loading '%s')\n", file_name.c_str());
         exit(1);
     }
     
@@ -98,17 +98,42 @@ Color Image::getRGB(int r, int c){
     return m_image[r][c];
 }
 
+vector<vector<float>> Image::operator-(Image i){
+    vector<vector<float>> difference;
+
+    for (int row = 0; row < m_width; row++){
+        vector<float> temp;
+        for (int col = 0; col < m_height; col++){
+            float r_1 = m_image[row][col].get_r();
+            float g_1 = m_image[row][col].get_g();
+            float b_1 = m_image[row][col].get_b();
+
+            float r_2 = i.getRGB(row, col).get_r();
+            float g_2 = i.getRGB(row, col).get_g();
+            float b_2 = i.getRGB(row, col).get_b();
+
+            float new_r = pow((r_1 - r_2), 2);
+            float new_g = pow((g_1 - g_2), 2);
+            float new_b = pow((b_1 - b_2), 2);
+            temp.push_back(sqrt(new_r + new_g + new_b));
+        }
+        difference.push_back(temp);
+    }
+
+    return difference;
+}
+
 void Image::writeImage(string file_name){
     FILE* file;
     file = fopen(file_name.c_str(), "w");
     if(!file){
-        fprintf(stderr, "Unable to open file %s", file_name);
+        fprintf(stderr, "Unable to open file %s", file_name.c_str());
         exit(1);
     }
     
     // your code goes here
     fprintf(file, "P3\n");
-    fprintf(file, "# CREATOR: Niall Williams and Jimmy Plaut\n");
+    fprintf(file, "# CREATORS: Niall Williams and Jimmy Plaut\n");
     
     fprintf(file, "%d %d\n%d\n", m_width, m_height, m_max);
     for(int i = 0; i < m_height; i++){

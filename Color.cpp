@@ -26,7 +26,7 @@ Color::~Color(){
 
 Color Color::operator+(const Color& c){
     return Color(m_color[0] + c.m_color[0], m_color[1] + c.m_color[1], m_color[2] + c.m_color[2]);
-    }
+}
 
 Color Color::operator-(const Color& c){
     return Color(m_color[0] - c.m_color[0], m_color[1] - c.m_color[1], m_color[2] - c.m_color[2]);
