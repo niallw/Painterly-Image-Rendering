@@ -34,10 +34,10 @@ vector<float> get_neighbors(vector<vector<float>> diff_map, int row, int col, in
     vector<float> neighbors;
     // cout << "window size: " <<2*grid_size+1<<endl;
     
-    for (int i = 0; i < grid_size/2; i++){
-        for (int j = 0; j < grid_size/2; j++){
-            int neighbor_row = row + i - grid_size;
-            int neighbor_col = col + j - grid_size;
+    for (int i = 0; i < 2*grid_size+1; i++){
+        for (int j = 0; j < 2*grid_size+1; j++){
+            int neighbor_row = row + i - grid_size/2;
+            int neighbor_col = col + j - grid_size/2;
             // cout<<"a"<<endl;
 
             if (neighbor_row >= 0 && neighbor_row < height && 
@@ -53,7 +53,7 @@ vector<float> get_neighbors(vector<vector<float>> diff_map, int row, int col, in
 }
 
 void paint_layer(Image* canvas, Image* reference_image, int brush_size, bool is_first_layer){
-    // vector<Stroke*> strokes;
+    vector<Stroke*> strokes;
     int grid_size = GRID_FACTOR * brush_size;
     vector<vector<float>> difference;
 
@@ -82,20 +82,18 @@ void paint_layer(Image* canvas, Image* reference_image, int brush_size, bool is_
                 int max_x;
                 int max_y;
                 int max_i;
-                float max = -1;
+                float max = INT_MIN;
 
-                //TODO: fix this ish
                 for (int i = 0; i < neighboring_points.size(); i++){
                     if (neighboring_points[i] > max){
                         max = neighboring_points[i];
                         max_x = i / grid_size;
                         max_y = i % grid_size;
-                        cout<<"i: "<<i<<" | grid size: "<<grid_size<<endl;
-                        cout<<"max val: "<<neighboring_points[i]<<endl;
-                        cout<<"max x: "<<max_x<<" | max y: "<< max_y<<endl;
                     }
                 }
 
+                Stroke* s = make_stroke();
+                strokes.push_back(s);
             }
         }
     }
