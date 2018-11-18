@@ -13,10 +13,13 @@ using namespace std;
 
 int height, width;
 const int GRID_FACTOR = 2;
+const int MIN_BRUSH_SIZE = 2;
+const int BRUSH_RATIO = 2/1;
+const int NUM_BRUSHES = 3;
 const float THRESHOLD = 0.2;
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/";
 
-vector<vector<float>> generate_max_image(){
+vector<vector<float>> generate_blank_canvas(){
     vector<vector<float>> diff;
 
     for (int row = 0; row < height; row++){
@@ -32,18 +35,14 @@ vector<vector<float>> generate_max_image(){
 
 vector<float> get_neighbors(vector<vector<float>> diff_map, int row, int col, int grid_size){
     vector<float> neighbors;
-    // cout << "window size: " <<2*grid_size+1<<endl;
     
     for (int i = 0; i < 2*grid_size+1; i++){
         for (int j = 0; j < 2*grid_size+1; j++){
             int neighbor_row = row + i - grid_size/2;
             int neighbor_col = col + j - grid_size/2;
-            // cout<<"a"<<endl;
 
             if (neighbor_row >= 0 && neighbor_row < height && 
                 neighbor_col >= 0 && neighbor_col < width){
-                    // cout << "cur row and col: " << row<<", "<<col<<endl;
-                    // cout << "Diff size: " <<diff_map.size() <<", "<<diff_map[0].size()<< " | "<<neighbor_row<<", "<<neighbor_col<<endl;
                     neighbors.push_back(diff_map[neighbor_col][neighbor_row]);
             }
         }
@@ -53,13 +52,13 @@ vector<float> get_neighbors(vector<vector<float>> diff_map, int row, int col, in
 }
 
 void paint_layer(Image* canvas, Image* reference_image, int brush_size, bool is_first_layer){
-    vector<Stroke*> strokes;
+    // vector<Stroke*> strokes;
     int grid_size = GRID_FACTOR * brush_size;
     vector<vector<float>> difference;
 
     // Build the pointwise difference image
     if (is_first_layer){
-        difference = generate_max_image();
+        difference = generate_blank_canvas();
     }
     else{
         difference = *canvas - *reference_image;
@@ -92,8 +91,8 @@ void paint_layer(Image* canvas, Image* reference_image, int brush_size, bool is_
                     }
                 }
 
-                Stroke* s = make_stroke();
-                strokes.push_back(s);
+                // Stroke* s = make_stroke();
+                // strokes.push_back(s);
             }
         }
     }
@@ -142,6 +141,7 @@ vector<vector<float>> calculate_kernel(int radius, int std_dev){
  * input_image - image to blur.
  * radius - radius of the kernel (and brush).
  * sigma - standard deviation of the kernel.
+ * TODO: move this to inside the image class
  */
 Image* blur_image(Image* input_image, int radius, int std_dev){
     Image* output = new Image(width, height, 255);
@@ -177,7 +177,7 @@ Image* blur_image(Image* input_image, int radius, int std_dev){
         }
     }
 
-    // output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/man_blur_high_stddev.ppm");
+    output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/1dPeckverison2.ppm");
     return output;
 }
 
@@ -193,19 +193,70 @@ Image* paint(Image* original_image, Image* canvas, vector<int> radii){
     }
 }
 
+vector<int> get_brushes(){
+    vector<int> brushes;
+
+    brushes.push_back(MIN_BRUSH_SIZE);
+    for (int i = 0; i < NUM_BRUSHES - 1; i++){
+        brushes.insert(brushes.begin(), brushes[0] * BRUSH_RATIO);
+    }
+
+    return brushes;
+}
+
 int main(){
     Image* input = new Image(path + "man.ppm");
-    height = input->getHeight();
-    width = input->getWidth();
-    cout << height << endl;
-    cout << width << endl;
-    vector<int> brush_radii {2, 3};
+    input->blur(20);
+    // Image* input2 = new Image(path + "man.ppm");
+    // height = input2->getHeight();
+    // width = input2->getWidth();
+    // Image* reference_image = blur_image(input2, 20, 10);
+    // cout << height << endl;
+    // cout << width << endl;    
+    vector<int> brush_radii = get_brushes();
 
-    // Image* t = generate_max_image();
+    // Image* t = generate_blank_canvas();
     // t->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/aaa.ppm");
 
-    Image* canvas = new Image(width, height, 255);
-    canvas = paint(input, canvas, brush_radii);
+    // Image* canvas = new Image(width, height, 255);
+    // canvas = paint(input, canvas, brush_radii);
+
+    // float r = 2;
+    // Image blur = Image(width, height, 255);
+    // Image blur2 = Image(width, height, 255);
+    // float filter_size = (2 * r + 1);
+    // for(int w = 0; w < height; w++){
+    //     for(int h = 0; h < width; h++){
+    //         if(h < r || h > width - r - 1){
+    //             blur.setColor(w, h, input->getRGB(w, h));
+    //         }
+    //         else{
+    //             Color c = Color(0.0, 0.0, 0.0);
+    //             for(int i = -r; i <=r; i++){
+    //                 c = input->getRGB(w, h+i) + c;
+    //             }
+    //             c = c / filter_size;
+    //             blur.setColor(w, h, c);
+    //         }
+    //     }
+    //  }
+    
+    // for(int w = 0; w < height; w++){
+    //     for(int h = 0; h < width; h++){
+    //         if(w < r || w > height - r - 1){
+    //             blur2.setColor(w, h, blur.getRGB(w,h));
+    //         }
+    //         else{
+    //             Color c = Color(0.0, 0.0, 0.0);
+    //             for(int i = -r; i <=r; i++){
+    //                 c = blur.getRGB(w+i,h) + c;
+    //             }
+    //             c = c / filter_size;
+    //             blur2.setColor(w, h, c);
+    //         }
+    //     }
+    // }
+    // blur2.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/1dPeckverison.ppm");
 
     // canvas->writeImage(path + "output.ppm");
 }

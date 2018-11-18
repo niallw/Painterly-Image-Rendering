@@ -148,3 +148,42 @@ void Image::writeImage(string file_name){
 }
 
 
+void Image::blur(int r){
+    Image blur = Image(this->m_width, this->m_height, this->m_max);
+    Image blur2 = Image(this->m_width, this->m_height, this->m_max);
+    float filter_size = (2 * r + 1);
+
+    for (int row = 0; row < m_height; row++){
+        for (int col = 0; col < m_width; col++){
+            Color c = Color(0.0, 0.0, 0.0);
+
+            for (int i = -r; i<= r; i++){
+                int new_row = row + i;
+                if (new_row < 0 || new_row >= m_height)
+                    new_row = row;
+                c = c + this->m_image[new_row][col];
+            }
+            
+            c = c / filter_size;
+            blur.setColor(col, row, c);
+        }
+    }
+
+    for (int row = 0; row < m_height; row++){
+        for (int col = 0; col < m_width; col++){
+            Color c = Color(0.0, 0.0, 0.0);
+
+            for (int i = -r; i<= r; i++){
+                int new_col = col + i;
+                if (new_col < 0 || new_col >= m_width)
+                    new_col = col;
+                c = c + blur.m_image[new_col][row];
+            }
+            
+            c = c / filter_size;
+            blur.setColor(col, row, c);
+        }
+    }
+    blur.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/1dPeckverison.ppm");
+    cout<<"D"<<endl;
+}

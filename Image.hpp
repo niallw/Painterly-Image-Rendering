@@ -17,6 +17,7 @@
 #include <string>
 #include <cmath>
 #include <vector>
+
 #include "Color.hpp"
 
 using namespace std;
@@ -35,6 +36,7 @@ public:
     void addColor(int, int, Color);
 
     vector<vector<float>> operator-(Image);
+    void blur(int r);
     
 private:
     char m_magic_number[2];
