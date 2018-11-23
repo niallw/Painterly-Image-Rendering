@@ -51,8 +51,34 @@ vector<float> get_neighbors(vector<vector<float>> diff_map, int row, int col, in
     return neighbors;
 }
 
-void paint_layer(Image* canvas, Image* reference_image, int brush_size, bool is_first_layer){
-    // vector<Stroke*> strokes;
+Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, Image* canvas){
+    Stroke* stroke = new Stroke(x, y, brush_size, ref_image);
+    Color stroke_color = stroke->get_color();
+    int cur_x = x;
+    int cur_y = y;
+    int last_x = 0;
+    int last_y = 0;
+
+    for (int i = 0; i <= MAX_STROKE_LENGTH; i++){ //TODO: make i start at 1 and go <= ?
+        Color ref_image_color = ref_image->getRGB(x, y);
+        Color canvas_color = canvas->getRGB(x, y);
+
+        if ((i > MIN_STROKE_LENGTH) && 
+            (ref_image_color - canvas_color < ref_image_color - stroke_color)){
+                return stroke;
+        }
+
+        // Detect vanishing gradient
+        // if (){
+            
+        // }
+    }   
+
+    return stroke;
+}
+
+void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_layer){
+    vector<Stroke*> strokes;
     int grid_size = GRID_FACTOR * brush_size;
     vector<vector<float>> difference;
 
@@ -61,7 +87,7 @@ void paint_layer(Image* canvas, Image* reference_image, int brush_size, bool is_
         difference = generate_blank_canvas();
     }
     else{
-        difference = *canvas - *reference_image;
+        difference = *canvas - *ref_image;
     }
 
     // Calculate error in difference map to locate regions we want to paint
@@ -91,8 +117,8 @@ void paint_layer(Image* canvas, Image* reference_image, int brush_size, bool is_
                     }
                 }
 
-                // Stroke* s = make_stroke();
-                // strokes.push_back(s);
+                Stroke* s = make_stroke(row, col, brush_size, ref_image, canvas);
+                strokes.push_back(s);
             }
         }
     }
@@ -187,8 +213,8 @@ Image* paint(Image* original_image, Image* canvas, vector<int> radii){
     bool first_layer = true;
 
     for (int brush_size : radii){
-        Image* reference_image = blur_image(original_image, brush_size, 1);
-        paint_layer(canvas, reference_image, brush_size, first_layer);
+        Image* ref_image = blur_image(original_image, brush_size, 1);
+        paint_layer(canvas, ref_image, brush_size, first_layer);
         if (first_layer) first_layer = false;
     }
 }
@@ -205,58 +231,55 @@ vector<int> get_brushes(){
 }
 
 int main(){
-    Image* input = new Image(path + "man.ppm");
-    input->blur(20);
-    // Image* input2 = new Image(path + "man.ppm");
-    // height = input2->getHeight();
-    // width = input2->getWidth();
-    // Image* reference_image = blur_image(input2, 20, 10);
-    // cout << height << endl;
-    // cout << width << endl;    
-    vector<int> brush_radii = get_brushes();
-
-    // Image* t = generate_blank_canvas();
-    // t->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/aaa.ppm");
+    Image* input = new Image(path + "filed cat.ppm");
+    height = input->getHeight();
+    width = input->getWidth();
+    cout << "width: " << width << endl;    
+    cout << "height: "<< height << endl;
+    // vector<int> brush_radii = get_brushes();
 
     // Image* canvas = new Image(width, height, 255);
     // canvas = paint(input, canvas, brush_radii);
 
-    // float r = 2;
-    // Image blur = Image(width, height, 255);
-    // Image blur2 = Image(width, height, 255);
-    // float filter_size = (2 * r + 1);
-    // for(int w = 0; w < height; w++){
-    //     for(int h = 0; h < width; h++){
-    //         if(h < r || h > width - r - 1){
-    //             blur.setColor(w, h, input->getRGB(w, h));
-    //         }
-    //         else{
-    //             Color c = Color(0.0, 0.0, 0.0);
-    //             for(int i = -r; i <=r; i++){
-    //                 c = input->getRGB(w, h+i) + c;
-    //             }
-    //             c = c / filter_size;
-    //             blur.setColor(w, h, c);
-    //         }
-    //     }
-    //  }
-    
-    // for(int w = 0; w < height; w++){
-    //     for(int h = 0; h < width; h++){
-    //         if(w < r || w > height - r - 1){
-    //             blur2.setColor(w, h, blur.getRGB(w,h));
-    //         }
-    //         else{
-    //             Color c = Color(0.0, 0.0, 0.0);
-    //             for(int i = -r; i <=r; i++){
-    //                 c = blur.getRGB(w+i,h) + c;
-    //             }
-    //             c = c / filter_size;
-    //             blur2.setColor(w, h, c);
-    //         }
-    //     }
-    // }
-    // blur2.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/1dPeckverison.ppm");
-
-    // canvas->writeImage(path + "output.ppm");
+    input->sobel();
 }
+
+// OLD BLUR SHIT TODO: delete this
+// float r = 2;
+// Image blur = Image(width, height, 255);
+// Image blur2 = Image(width, height, 255);
+// float filter_size = (2 * r + 1);
+// for(int w = 0; w < height; w++){
+//     for(int h = 0; h < width; h++){
+//         if(h < r || h > width - r - 1){
+//             blur.setColor(w, h, input->getRGB(w, h));
+//         }
+//         else{
+//             Color c = Color(0.0, 0.0, 0.0);
+//             for(int i = -r; i <=r; i++){
+//                 c = input->getRGB(w, h+i) + c;
+//             }
+//             c = c / filter_size;
+//             blur.setColor(w, h, c);
+//         }
+//     }
+//  }
+
+// for(int w = 0; w < height; w++){
+//     for(int h = 0; h < width; h++){
+//         if(w < r || w > height - r - 1){
+//             blur2.setColor(w, h, blur.getRGB(w,h));
+//         }
+//         else{
+//             Color c = Color(0.0, 0.0, 0.0);
+//             for(int i = -r; i <=r; i++){
+//                 c = blur.getRGB(w+i,h) + c;
+//             }
+//             c = c / filter_size;
+//             blur2.setColor(w, h, c);
+//         }
+//     }
+// }
+// blur2.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/1dPeckverison.ppm");
+
+// canvas->writeImage(path + "output.ppm");

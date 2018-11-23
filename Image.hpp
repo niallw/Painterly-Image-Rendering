@@ -37,12 +37,15 @@ public:
 
     vector<vector<float>> operator-(Image);
     void blur(int r);
+    Image* sobel();
     
 private:
     char m_magic_number[2];
     int m_width;
     int m_height;
     int m_max;
+    int const sobel_1[3] = {1, 0, -1};
+    int const sobel_2[3] = {1, 2, 1};
     Color** m_image;
 };
 

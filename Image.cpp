@@ -12,10 +12,10 @@ Image::Image(int w, int h, int m){
     m_width = w;
     m_height = h;
     m_max = m;
-    m_image = new Color*[m_width];
-    for(int i = 0; i < m_width; i++){
-        m_image[i] = new Color[m_height];
-        for(int j = 0; j < m_height; j++){
+    m_image = new Color*[m_height];
+    for(int i = 0; i < m_height; i++){
+        m_image[i] = new Color[m_width];
+        for(int j = 0; j < m_width; j++){
             m_image[i][j] = Color();
         }
     }
@@ -67,14 +67,14 @@ Image::Image(string file_name){
 }
 
 Image::~Image(void){
-    for(int i = 0; i < m_width; i++){
+    for(int i = 0; i < m_height; i++){
         delete [] m_image[i];
     }
     delete [] m_image;
 }
 
-void Image::setColor(int w, int h, Color c){
-    m_image[w][h] = c;
+void Image::setColor(int h, int w, Color c){
+    m_image[h][w] = c;
 }
 
 void Image::addColor(int w, int h, Color c){
@@ -138,7 +138,7 @@ void Image::writeImage(string file_name){
     fprintf(file, "%d %d\n%d\n", m_width, m_height, m_max);
     for(int i = 0; i < m_height; i++){
         for(int j = 0; j < m_width; j++){
-            Color c = m_image[j][i]*255;
+            Color c = m_image[i][j]*255;
             fprintf(file, "%d %d %d\n", (int)c.get_r(), (int)c.get_g(), (int)c.get_b() );
         }
     }
@@ -148,6 +148,7 @@ void Image::writeImage(string file_name){
 }
 
 
+//TODO: FIXME: MAKE THIS SHIT WORK. TAKE IMPLEMENTATION FROM THE MAIN FILE 
 void Image::blur(int r){
     Image blur = Image(this->m_width, this->m_height, this->m_max);
     Image blur2 = Image(this->m_width, this->m_height, this->m_max);
@@ -187,3 +188,119 @@ void Image::blur(int r){
     blur.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/1dPeckverison.ppm");
     cout<<"D"<<endl;
 }
+
+//FIXME: not 100% correct. I believe the y-gradient is messed up
+Image* Image::sobel(){
+    Image* x_sobel = new Image(m_width, m_height, 255);
+    Image* y_sobel_temp = new Image(m_width, m_height, 255);
+    Image* y_sobel = new Image(m_width, m_height, 255);
+
+    // Horizontal filter
+    for (int row = 0; row < m_height; row++){
+        for (int col = 0; col < m_width; col++){
+            Color new_x_color = Color();
+            Color new_y_color = Color();
+
+            if (col - 1 >= 0){
+                new_x_color = new_x_color + (this->m_image[row][col-1] * sobel_1[0]);
+                new_y_color = new_y_color + (this->m_image[row][col-1] * sobel_2[0]);
+            }
+            new_y_color = new_y_color + (this->m_image[row][col] * sobel_2[1]);
+            if (col + 1 < m_width){
+                new_x_color = new_x_color + (this->m_image[row][col+1] * sobel_1[2]);
+                new_y_color = new_y_color + (this->m_image[row][col+1] * sobel_2[2]);
+            }
+
+            new_x_color.clamp();
+            x_sobel->setColor(row, col, new_x_color);
+            new_y_color.clamp();
+            y_sobel_temp->setColor(row, col, new_y_color);
+        }
+    }
+
+    // Vertical filter
+    for (int row = 0; row < m_height; row++){
+        for (int col = 0; col < m_width; col++){
+            Color* new_x_color = new Color();
+            Color* new_y_color = new Color(0.0, 0.0, 0.0);
+
+            if (row - 1 >= 0){
+                *new_x_color = *new_x_color + (x_sobel->getRGB(row-1, col) * sobel_2[0]);
+                *new_y_color = *new_y_color + (y_sobel_temp->getRGB(row-1, col) * sobel_1[0]);
+                
+                cout<<"row: "<<row<<" col: "<<col<<" | FIRST SOBEL: "; 
+                cout << new_y_color->get_r() << ", " <<new_y_color->get_g()<<", "<<new_y_color->get_b()<<endl;
+            }
+            *new_x_color = *new_x_color + (x_sobel->getRGB(row, col) * sobel_2[1]);
+            if (row + 1 < m_height){
+                *new_x_color = *new_x_color + (x_sobel->getRGB(row+1, col) * sobel_2[2]);
+                *new_y_color = *new_y_color + (y_sobel_temp->getRGB(row+1, col) * sobel_1[2]);
+            }
+            new_x_color->clamp();
+            *new_x_color = *new_x_color / 6;
+            x_sobel->setColor(row, col, *new_x_color);
+            new_y_color->clamp();
+            *new_y_color = *new_y_color / 6;
+            y_sobel->setColor(row, col, *new_y_color);
+        }
+    }
+
+    Image* final_img = new Image(m_width, m_height, 255);
+    for (int row = 0; row < m_height; row++){
+        for (int col = 0; col < m_width; col++){
+            Color temp = (x_sobel->getRGB(row, col) * 0.5) + (y_sobel->getRGB(row, col) * 0.5);
+            final_img->setColor(row, col, temp);
+        }
+    }
+
+    final_img->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel cat.ppm");
+    x_sobel->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/xsobel.ppm");
+    y_sobel->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/ysobel.ppm");
+}
+
+
+
+    // ========================================
+
+
+    // Image* y_gradient = new Image(m_width, m_height, 255);
+
+    // for (int i = 0; i < m_height; i++){
+    //     for (int j = 0; j < m_width; j++){
+    //         Color new_y = Color();
+
+    //         if (j-1 >= 0){
+    //             new_y = new_y + (this->m_image[i][j-1] * sobel_2[0]);
+    //         }
+    //         new_y = new_y + (this->m_image[i][j] * sobel_2[1]);
+    //         if (j+1 < m_width){
+    //             new_y = new_y + (this->m_image[i][j+1] * sobel_2[2]);
+    //         }
+    //         new_y.clamp();
+    //         // cout << new_y.get_r() << ", " <<new_y.get_g()<<", "<<new_y.get_b()<<endl;
+    //         y_gradient->setColor(i, j, new_y);
+    //     }
+    // }
+
+    // // for (int i = 0; i < m_height; i++){
+    // //     for (int j = 0; j < m_width; j++){
+    // //         cout << y_gradient->getRGB(i,j).get_r() << ", " <<y_gradient->getRGB(i,j).get_g()<<", "<<y_gradient->getRGB(i,j).get_b()<<endl;
+    // //     }
+    // // }
+    // Image* test = new Image(m_width, m_height, 255);
+    // for (int i = 0; i < m_height; i++){
+    //     for (int j = 0; j < m_width; j++){
+    //         Color new_y2 = Color();
+
+    //         if (i-1 >= 0){
+    //             new_y2 = new_y2 + (y_gradient->getRGB(i-1, j) * sobel_1[0]);
+    //         }
+    //         if (i+1 < m_height){
+    //             new_y2 = new_y2 + (y_gradient->getRGB(i+1, j) * sobel_1[2]);
+    //         }
+    //         new_y2.clamp();
+    //         cout << new_y2.get_r() << ", " <<new_y2.get_g()<<", "<<new_y2.get_b()<<endl;
+    //         test->setColor(i, j, new_y2);
+    //     }
+    // }
+    // test->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/ysobel.ppm");

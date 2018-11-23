@@ -21,7 +21,7 @@ public:
     ~Color();
     
     Color operator+(const Color& c);
-    Color operator-(const Color& c);
+    float operator-(const Color& c);
     Color operator*(const Color& c);
     Color operator/(const Color& c);
     Color operator*(float f);
