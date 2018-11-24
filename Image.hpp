@@ -37,7 +37,8 @@ public:
 
     vector<vector<float>> operator-(Image);
     Image* blur(int, int);
-    Image** sobel();
+    Image* grayscale();
+    vector<Image*> sobel();
     
 private:
     char m_magic_number[2];

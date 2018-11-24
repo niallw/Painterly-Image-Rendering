@@ -2,6 +2,8 @@
 #include "Stroke.hpp"
 #include "Image.hpp"
 
+using namespace std;
+
 Stroke::Stroke(int x, int y, int radius, Image* reference_image){
     this->control_points.push_back(new Vector(x, y));
     this->radius = radius;

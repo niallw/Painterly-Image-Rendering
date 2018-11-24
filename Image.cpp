@@ -77,9 +77,9 @@ void Image::setColor(int h, int w, Color c){
     m_image[h][w] = c;
 }
 
-void Image::addColor(int w, int h, Color c){
-    m_image[w][h] = m_image[w][h] + c;
-    m_image[w][h].clamp();
+void Image::addColor(int h, int w, Color c){
+    m_image[h][w] = m_image[h][w] + c;
+    m_image[h][w].clamp();
 }
 
 int Image::getWidth(){
@@ -221,30 +221,48 @@ Image* Image::blur(int radius, int std_dev){
                 }
             }
 
-            output->addColor(col, row, new_val);
+            output->addColor(row, col, new_val);
         }
     }
 
     // TODO: remove this writeImage call
-    output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/1dPeckverison2.ppm");
+    output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/test22.ppm");
     return output;
 }
 
+Image* Image::grayscale(){
+    Image* gray = new Image(m_width, m_height, 255);
+
+    for (int row = 0; row < m_height; row++){
+        for (int col = 0; col < m_width; col++){
+            float luminance = m_image[row][col].get_r() * 0.3  + 
+                              m_image[row][col].get_g() * 0.59 + 
+                              m_image[row][col].get_b() * 0.11;
+            Color temp = Color(luminance, luminance, luminance);
+            gray->setColor(row, col, temp);
+        }
+    }
+
+    // TODO: remove this writeImage call
+    gray->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/gray.ppm");
+    return gray;
+}
+
 //FIXME: current bug: the output image is quite noisy. Much more so than the GIMP output.
-Image** Image::sobel(){
-    vector<vector<float>> grayscale_img;
-    Image** filtered_images;
+vector<Image*> Image::sobel(){
+    vector<Image*> filtered_images;
+    Image* grayscale = this->grayscale();
     Image* combined = new Image(m_width, m_height, 255);
     Image* x = new Image(m_width, m_height, 255);
     Image* y = new Image(m_width, m_height, 255);
 
-    int kernel1[8] = {1, 0, -1, 2, -2, 1, 0, -1};
-    int kernel2[8] = {1, 2, 1, 0, 0, -1, -2, -1};
+    int kernel_1[8] = {1, 0, -1, 2, -2, 1, 0, -1};
+    int kernel_2[8] = {1, 2, 1, 0, 0, -1, -2, -1};
+    int r_delta[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+    int c_delta[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
 
     for (int row = 0; row < m_height; row++){
         for (int col = 0; col < m_width; col++){
-            int r_delta[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-            int c_delta[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
             Color x_c = Color();
             Color y_c = Color();
 
@@ -253,10 +271,11 @@ Image** Image::sobel(){
                 int new_c = col + c_delta[i];    
 
                 if (new_r >= 0 && new_r < m_height && new_c >= 0 && new_c < m_width){
-                    x_c = x_c + (m_image[new_r][new_c] * kernel1[i]);
-                    y_c = y_c + (m_image[new_r][new_c] * kernel2[i]);
+                    x_c = x_c + (grayscale->getRGB(new_r, new_c) * kernel_1[i]);
+                    y_c = y_c + (grayscale->getRGB(new_r, new_c) * kernel_2[i]);
                 }
             }
+            
             x_c = Color(abs(x_c.get_r()), abs(x_c.get_g()), abs(x_c.get_b()));
             y_c = Color(abs(y_c.get_r()), abs(y_c.get_g()), abs(y_c.get_b()));
             x_c.clamp();
@@ -274,9 +293,9 @@ Image** Image::sobel(){
     x->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/2d_xsobel.ppm");
     y->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/2d_ysobel.ppm");
 
-    filtered_images[0] = combined;
-    filtered_images[1] = x;
-    filtered_images[2] = y;
+    filtered_images.push_back(combined);
+    filtered_images.push_back(x);
+    filtered_images.push_back(y);
     return filtered_images;
 }
 

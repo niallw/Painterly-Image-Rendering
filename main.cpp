@@ -17,6 +17,7 @@ const int MIN_BRUSH_SIZE = 2;
 const int BRUSH_RATIO = 2/1;
 const int NUM_BRUSHES = 3;
 const float THRESHOLD = 0.2;
+const float CURVATURE_FILTER = 1;
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/";
 
 vector<vector<float>> generate_blank_canvas(){
@@ -57,8 +58,9 @@ vector<vector<float>> get_neighbors(vector<vector<float>> diff_map, int row, int
 }
 
 Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, Image* canvas){
-    Image** sobel_filters = ref_image->sobel();
-    // Image* 
+    vector<Image*> sobel_filters = ref_image->sobel();
+    Image* sobel_x = sobel_filters[1];
+    Image* sobel_y = sobel_filters[2];
     Stroke* stroke = new Stroke(x, y, brush_size, ref_image);
     Color stroke_color = stroke->get_color();
     int cur_x = x;
@@ -67,8 +69,8 @@ Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, Image* canva
     int last_Dy = 0;
 
     for (int i = 0; i <= MAX_STROKE_LENGTH; i++){ //TODO: make i start at 1 and go <= ?
-        Color ref_image_color = ref_image->getRGB(x, y);
-        Color canvas_color = canvas->getRGB(x, y);
+        Color ref_image_color = ref_image->getRGB(cur_x, cur_y);
+        Color canvas_color = canvas->getRGB(cur_x, cur_y);
 
         if ((i > MIN_STROKE_LENGTH) &&
             (abs(ref_image_color - canvas_color) < abs(ref_image_color - stroke_color))){
@@ -76,9 +78,37 @@ Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, Image* canva
         }
 
         // Detect vanishing gradient
-        if (){
-
+        float gradient_mag = sqrt(sobel_x->getRGB(cur_y, cur_x).get_r() + 
+                                  sobel_y->getRGB(cur_y, cur_x).get_r());
+        if (gradient_mag == 0){
+            return stroke;
         }
+
+        // Get unit vector of gradient
+        float theta = atan(sobel_x->getRGB(cur_y, cur_x).get_r() / 
+                           sobel_y->getRGB(cur_y, cur_x).get_r());
+        int g_x = cos(theta);
+        int g_y = sin(theta);
+        // Compute a normal to the gradient
+        int d_x = -g_y;
+        int d_y = g_x;
+
+        // Reverse normal if necessary
+        if (last_Dx * d_x + last_Dy * d_y < 0){
+            d_x *= -1;
+            d_y *= -1;
+        }
+
+        // Filter the stroke direction
+        float denom = sqrt(d_x * d_x + d_y * d_y); // Just do it once because it's expensive
+        d_x = ((CURVATURE_FILTER * d_x) + ((1-CURVATURE_FILTER * d_x) * last_Dx)) / denom;
+        d_y = ((CURVATURE_FILTER * d_y) + ((1-CURVATURE_FILTER * d_y) * last_Dy)) / denom;
+        cur_x = cur_x + brush_size * d_x;
+        cur_y = cur_y + brush_size * d_y;
+        last_Dx = d_x;
+        last_Dy = d_y;
+
+        stroke->add_control_point(cur_x, cur_y);
     }
 
     return stroke;
@@ -110,7 +140,6 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
             if (area_error > THRESHOLD){
                 int max_row;
                 int max_col;
-                int max_i;
                 float max = INT_MIN;
 
                 for (int i = 0; i < neighboring_points.size(); i++){
@@ -123,9 +152,12 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
 
                 Stroke* s = make_stroke(max_row, max_col, brush_size, ref_image, canvas);
                 strokes.push_back(s);
+                cout<<"Stroke #"<<strokes.size()<<": "<<*s<<endl<<endl;
             }
         }
     }
+
+    cout <<"FREEDOM"<<endl;
 }
 
 Image* paint(Image* original_image, vector<int> radii){
@@ -162,4 +194,5 @@ int main(){
     vector<int> brush_radii = get_brushes();
 
     Image* canvas = paint(input, brush_radii);
+    // input->blur(2, 3);
 }

@@ -14,6 +14,13 @@ class Stroke{
         Stroke(int, int, int, Image*);
         ~Stroke();
 
+        friend ostream& operator<<(ostream& stream, const Stroke& stroke){
+            for (int i = 0; i < stroke.control_points.size(); i++){
+                stream<<"("<<stroke.control_points[i]->get_x()<<", "<<stroke.control_points[i]->get_y()<<") ";
+            }
+            return stream;
+        }
+
         Color get_color();
         void add_control_point(int, int);
 
