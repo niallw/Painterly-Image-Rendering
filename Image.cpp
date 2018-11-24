@@ -147,50 +147,94 @@ void Image::writeImage(string file_name){
     
 }
 
+/**Calculate the 2D Gaussian kernel with the given radius and 
+ * standard deviation. Note that the kernel is an approximation,
+ * but it's pretty close to the real thing regardless.
+ * 
+ * radius - radius of the kernel (and brush).
+ * sigma - standard deviation of the kernel.
+ */
+vector<vector<float>> Image::calculate_kernel(int radius, int std_dev){
+    float sigma = std_dev;
+    int W = 2*radius+1;
+    vector<vector<float>> kernel;
+    float mean = W/2;
+    float sum = 0.0; // For accumulating the kernel values
 
-//TODO: FIXME: MAKE THIS SHIT WORK. TAKE IMPLEMENTATION FROM THE MAIN FILE 
-void Image::blur(int r){
-    Image blur = Image(this->m_width, this->m_height, this->m_max);
-    Image blur2 = Image(this->m_width, this->m_height, this->m_max);
-    float filter_size = (2 * r + 1);
+    // Create the kernel
+    for (int x = 0; x < W; ++x) {
+        vector<float> temp;
+        for (int y = 0; y < W; ++y) {
+            // Math to calculate kernel values :)
+            temp.push_back(exp(-0.5 * (pow((x-mean)/sigma, 2.0) + pow((y-mean)/sigma,2.0)))
+                           / (2 * M_PI * sigma * sigma));
 
-    for (int row = 0; row < m_height; row++){
-        for (int col = 0; col < m_width; col++){
-            Color c = Color(0.0, 0.0, 0.0);
+            sum += temp[temp.size() - 1]; // Accumulate the kernel values
+        }
+        kernel.push_back(temp);
+    }
 
-            for (int i = -r; i<= r; i++){
-                int new_row = row + i;
-                if (new_row < 0 || new_row >= m_height)
-                    new_row = row;
-                c = c + this->m_image[new_row][col];
-            }
-            
-            c = c / filter_size;
-            blur.setColor(col, row, c);
+    // Normalize the kernel
+    for (int x = 0; x < W; ++x) {
+        for (int y = 0; y < W; ++y){
+            kernel[x][y] /= sum;
         }
     }
 
+    return kernel;
+}
+
+/**Convolve over the image with a Gaussian kernel to apply
+ * a Gaussian blur to the image.
+ * 
+ * input_image - image to blur.
+ * radius - radius of the kernel (and brush).
+ * sigma - standard deviation of the kernel.
+ * TODO: make this work with 2 1D kernels
+ */
+Image* Image::blur(int radius, int std_dev){
+    Image* output = new Image(m_width, m_height, 255);
+    int r = radius;
+    vector<vector<float>> kernel = calculate_kernel(r, std_dev);
+
     for (int row = 0; row < m_height; row++){
         for (int col = 0; col < m_width; col++){
-            Color c = Color(0.0, 0.0, 0.0);
+            Color new_val = Color();
 
-            for (int i = -r; i<= r; i++){
-                int new_col = col + i;
-                if (new_col < 0 || new_col >= m_width)
-                    new_col = col;
-                c = c + blur.m_image[new_col][row];
+            // Weighted sum of neighbors
+            for (int i = 0; i < 2*r+1; i++){
+                for (int j = 0; j < 2*r+1; j++){
+                    int R_DELTA = i-r;
+                    int C_DELTA = j-r;
+                    float scale = kernel[i][j];
+                    Color pixel_color;
+
+                    int new_r = row + R_DELTA;
+                    int new_c = col + C_DELTA;
+
+                    // Ignore pixels on the outside FIXME: change this to do mirror?
+                    if (new_r >= 0 && new_r < m_height && new_c >= 0 && new_c < m_width){
+                        pixel_color = m_image[new_r][new_c];
+                        pixel_color = pixel_color * scale;
+                        new_val = new_val + pixel_color;
+                    }
+                }
             }
-            
-            c = c / filter_size;
-            blur.setColor(col, row, c);
+
+            output->addColor(col, row, new_val);
         }
     }
-    blur.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/1dPeckverison.ppm");
+
+    // TODO: remove this writeImage call
+    output->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/1dPeckverison2.ppm");
+    return output;
 }
 
 //FIXME: current bug: the output image is quite noisy. Much more so than the GIMP output.
-Image* Image::sobel(){
-    Image* out = new Image(m_width, m_height, 255);
+Image** Image::sobel(){
+    vector<vector<float>> grayscale_img;
+    Image** filtered_images;
+    Image* combined = new Image(m_width, m_height, 255);
     Image* x = new Image(m_width, m_height, 255);
     Image* y = new Image(m_width, m_height, 255);
 
@@ -221,13 +265,19 @@ Image* Image::sobel(){
             y_c = y_c / 8;
             x->setColor(row, col, x_c);
             y->setColor(row, col, y_c);
-            out->setColor(row, col, (x_c) + (y_c));
+            combined->setColor(row, col, (x_c) + (y_c));
         }
     }
 
-    out->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/2d_final.ppm");
+    // TODO: remove this writeImage call
+    combined->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/2d_final.ppm");
     x->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/2d_xsobel.ppm");
     y->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/2d_ysobel.ppm");
+
+    filtered_images[0] = combined;
+    filtered_images[1] = x;
+    filtered_images[2] = y;
+    return filtered_images;
 }
 
     //TODO: FIXME: remove these comments. I kept them in case we revisit to debug the 1d kernel version.
