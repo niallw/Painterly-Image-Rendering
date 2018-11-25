@@ -19,14 +19,17 @@ const int NUM_BRUSHES = 3;
 const float THRESHOLD = 0.2;
 const float CURVATURE_FILTER = 1;
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/";
+vector<Image*> sobel_filters;
+Image* sobel_x, *sobel_y;
 
 vector<vector<float>> generate_blank_canvas(){
     vector<vector<float>> diff;
 
-    for (int row = 0; row < height; row++){
+    //TODO: I swapped width and height in the for loops cuz seg fault. i'm not sure if it was correct before or after swapping.
+    for (int row = 0; row < width; row++){
         vector<float> temp;
-        for (int col = 0; col < width; col++){
-            temp.push_back(69);
+        for (int col = 0; col < height; col++){
+            temp.push_back(INTMAX_MAX);
         }
         diff.push_back(temp);
     }
@@ -42,9 +45,8 @@ vector<vector<float>> get_neighbors(vector<vector<float>> diff_map, int row, int
             int neighbor_row = row + i;
             int neighbor_col = col + j;
 
-            if ((neighbor_row >= 0 && neighbor_row < height &&
-                neighbor_col >= 0 && neighbor_col < width) &&
-                !(neighbor_row == row && neighbor_col == col)){
+            if (neighbor_row >= 0 && neighbor_row < diff_map.size() &&
+                neighbor_col >= 0 && neighbor_col < diff_map[0].size()){
                     vector<float> temp;
                     temp.push_back(neighbor_row);
                     temp.push_back(neighbor_col);
@@ -58,15 +60,12 @@ vector<vector<float>> get_neighbors(vector<vector<float>> diff_map, int row, int
 }
 
 Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, Image* canvas){
-    vector<Image*> sobel_filters = ref_image->sobel();
-    Image* sobel_x = sobel_filters[1];
-    Image* sobel_y = sobel_filters[2];
     Stroke* stroke = new Stroke(x, y, brush_size, ref_image);
     Color stroke_color = stroke->get_color();
     int cur_x = x;
     int cur_y = y;
-    int last_Dx = 0;
-    int last_Dy = 0;
+    float last_Dx = 0;
+    float last_Dy = 0;
 
     for (int i = 0; i <= MAX_STROKE_LENGTH; i++){ //TODO: make i start at 1 and go <= ?
         Color ref_image_color = ref_image->getRGB(cur_x, cur_y);
@@ -74,24 +73,24 @@ Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, Image* canva
 
         if ((i > MIN_STROKE_LENGTH) &&
             (abs(ref_image_color - canvas_color) < abs(ref_image_color - stroke_color))){
-                return stroke;
+            return stroke;
         }
 
         // Detect vanishing gradient
-        float gradient_mag = sqrt(sobel_x->getRGB(cur_y, cur_x).get_r() + 
+        float gradient_mag = sqrt(sobel_x->getRGB(cur_y, cur_x).get_r() +
                                   sobel_y->getRGB(cur_y, cur_x).get_r());
         if (gradient_mag == 0){
             return stroke;
         }
 
         // Get unit vector of gradient
-        float theta = atan(sobel_x->getRGB(cur_y, cur_x).get_r() / 
+        float theta = atan(sobel_x->getRGB(cur_y, cur_x).get_r() /
                            sobel_y->getRGB(cur_y, cur_x).get_r());
-        int g_x = cos(theta);
-        int g_y = sin(theta);
+        float g_x = cos(theta);
+        float g_y = sin(theta);
         // Compute a normal to the gradient
-        int d_x = -g_y;
-        int d_y = g_x;
+        float d_x = -g_y;
+        float d_y = g_x;
 
         // Reverse normal if necessary
         if (last_Dx * d_x + last_Dy * d_y < 0){
@@ -100,9 +99,15 @@ Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, Image* canva
         }
 
         // Filter the stroke direction
-        float denom = sqrt(d_x * d_x + d_y * d_y); // Just do it once because it's expensive
-        d_x = ((CURVATURE_FILTER * d_x) + ((1-CURVATURE_FILTER * d_x) * last_Dx)) / denom;
-        d_y = ((CURVATURE_FILTER * d_y) + ((1-CURVATURE_FILTER * d_y) * last_Dy)) / denom;
+//        float denom = sqrt(d_x * d_x + d_y * d_y); // Just do it once because it's expensive
+//        d_x = ((CURVATURE_FILTER * d_x) + ((1-CURVATURE_FILTER * d_x) * last_Dx)) / denom;
+//        d_y = ((CURVATURE_FILTER * d_y) + ((1-CURVATURE_FILTER * d_y) * last_Dy)) / denom;
+        d_x = CURVATURE_FILTER * (d_x) + (1 - CURVATURE_FILTER) * last_Dx;
+        d_y = CURVATURE_FILTER * (d_y) + (1 - CURVATURE_FILTER) * last_Dy;
+        d_x = d_x / sqrt(d_x * d_x + d_y * d_y);
+        d_y = d_y / sqrt(d_x * d_x + d_y * d_y); //TODO: these are different. cuz dx changes for the y calc
+        if (d_x < 0) d_x = 0;
+        if (d_y < 0) d_y = 0;
         cur_x = cur_x + brush_size * d_x;
         cur_y = cur_y + brush_size * d_y;
         last_Dx = d_x;
@@ -152,7 +157,7 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
 
                 Stroke* s = make_stroke(max_row, max_col, brush_size, ref_image, canvas);
                 strokes.push_back(s);
-                cout<<"Stroke #"<<strokes.size()<<": "<<*s<<endl<<endl;
+//                cout<<"Stroke #"<<strokes.size()<<": "<<*s<<endl<<endl;
             }
         }
     }
@@ -192,6 +197,11 @@ int main(){
     cout << "width: " << width << endl;
     cout << "height: "<< height << endl;
     vector<int> brush_radii = get_brushes();
+
+    sobel_filters = input->sobel();
+    sobel_x = sobel_filters[1];
+    cout<<sobel_x->getRGB(4,4).get_b()<<endl;
+    sobel_y = sobel_filters[2];
 
     Image* canvas = paint(input, brush_radii);
     // input->blur(2, 3);
