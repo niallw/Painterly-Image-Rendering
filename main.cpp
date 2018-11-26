@@ -5,6 +5,7 @@
 #include <string>
 #include <climits>
 #include <numeric>
+#include <random>
 
 #include "Image.hpp"
 #include "Stroke.hpp"
@@ -15,12 +16,11 @@ int height, width;
 const int GRID_FACTOR = 2;
 const int MIN_BRUSH_SIZE = 2;
 const int BRUSH_RATIO = 2/1;
-const int NUM_BRUSHES = 3;
+const int NUM_BRUSHES = 1;
 const float THRESHOLD = 0.2;
 const float CURVATURE_FILTER = 1;
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/";
-vector<Image*> sobel_filters;
-Image* sobel_x, *sobel_y;
+auto rng = default_random_engine {};
 
 vector<vector<float>> generate_blank_canvas(){
     vector<vector<float>> diff;
@@ -47,11 +47,11 @@ vector<vector<float>> get_neighbors(vector<vector<float>> diff_map, int row, int
 
             if (neighbor_row >= 0 && neighbor_row < diff_map.size() &&
                 neighbor_col >= 0 && neighbor_col < diff_map[0].size()){
-                    vector<float> temp;
-                    temp.push_back(neighbor_row);
-                    temp.push_back(neighbor_col);
-                    temp.push_back(diff_map[neighbor_row][neighbor_col]);
-                    neighbors.push_back(temp);
+                vector<float> temp;
+                temp.push_back(neighbor_row);
+                temp.push_back(neighbor_col);
+                temp.push_back(diff_map[neighbor_row][neighbor_col]);
+                neighbors.push_back(temp);
             }
         }
     }
@@ -59,15 +59,16 @@ vector<vector<float>> get_neighbors(vector<vector<float>> diff_map, int row, int
     return neighbors;
 }
 
-Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, Image* canvas){
-    Stroke* stroke = new Stroke(x, y, brush_size, ref_image);
+Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, 
+                    Image* canvas, Image* sobel_x, Image* sobel_y){
+    Stroke* stroke = new Stroke(x, y, brush_size, ref_image->getRGB(x, y));
     Color stroke_color = stroke->get_color();
     int cur_x = x;
     int cur_y = y;
     float last_Dx = 0;
     float last_Dy = 0;
 
-    for (int i = 0; i <= MAX_STROKE_LENGTH; i++){ //TODO: make i start at 1 and go <= ?
+    for (int i = 0; i < MAX_STROKE_LENGTH; i++){ //TODO: make i start at 1 and go <= ?
         Color ref_image_color = ref_image->getRGB(cur_x, cur_y);
         Color canvas_color = canvas->getRGB(cur_x, cur_y);
 
@@ -99,13 +100,11 @@ Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, Image* canva
         }
 
         // Filter the stroke direction
-//        float denom = sqrt(d_x * d_x + d_y * d_y); // Just do it once because it's expensive
-//        d_x = ((CURVATURE_FILTER * d_x) + ((1-CURVATURE_FILTER * d_x) * last_Dx)) / denom;
-//        d_y = ((CURVATURE_FILTER * d_y) + ((1-CURVATURE_FILTER * d_y) * last_Dy)) / denom;
         d_x = CURVATURE_FILTER * (d_x) + (1 - CURVATURE_FILTER) * last_Dx;
         d_y = CURVATURE_FILTER * (d_y) + (1 - CURVATURE_FILTER) * last_Dy;
-        d_x = d_x / sqrt(d_x * d_x + d_y * d_y);
-        d_y = d_y / sqrt(d_x * d_x + d_y * d_y); //TODO: these are different. cuz dx changes for the y calc
+        float denom = sqrt(d_x * d_x + d_y * d_y); // Just do it once because it's expensive
+        d_x = d_x / denom;
+        d_y = d_y / denom; 
         if (d_x < 0) d_x = 0;
         if (d_y < 0) d_y = 0;
         cur_x = cur_x + brush_size * d_x;
@@ -121,6 +120,8 @@ Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, Image* canva
 
 void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_layer){
     vector<Stroke*> strokes;
+    Image sobel_x = ref_image->sobel_x();
+    Image sobel_y = ref_image->sobel_y();
     int grid_size = GRID_FACTOR * brush_size;
     vector<vector<float>> difference;
 
@@ -155,14 +156,28 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
                     }
                 }
 
-                Stroke* s = make_stroke(max_row, max_col, brush_size, ref_image, canvas);
+                Stroke* s = make_stroke(max_row, max_col, brush_size, ref_image, 
+                                        canvas, &sobel_x, &sobel_y);
                 strokes.push_back(s);
-//                cout<<"Stroke #"<<strokes.size()<<": "<<*s<<endl<<endl;
+                // cout<<"Stroke #"<<strokes.size()<<": "<<*s<<endl<<endl;
             }
         }
     }
 
-    cout <<"FREEDOM"<<endl;
+    shuffle(strokes.begin(), strokes.end(), rng);
+    for (auto stroke : strokes){
+        auto points = stroke->get_control_points();
+        for (auto pt : points){
+            int x = pt->get_x();
+            int y = pt->get_y();
+            canvas->setColor(x, y, stroke->get_color());
+        }
+    }
+
+
+    for (auto s : strokes){
+        delete s;
+    }
 }
 
 Image* paint(Image* original_image, vector<int> radii){
@@ -171,8 +186,8 @@ Image* paint(Image* original_image, vector<int> radii){
     Image* canvas = new Image(width, height, 255);
 
     for (int brush_size : radii){
-        Image* ref_image = original_image->blur(brush_size, 1);
-        paint_layer(canvas, ref_image, brush_size, first_layer);
+        Image ref_image = original_image->blur(brush_size, brush_size);
+        paint_layer(canvas, &ref_image, brush_size, first_layer);
         if (first_layer) first_layer = false;
     }
 
@@ -191,18 +206,18 @@ vector<int> get_brushes(){
 }
 
 int main(){
-    Image* input = new Image(path + "man.ppm");
+    Image* input = new Image(path + "cat.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "width: " << width << endl;
     cout << "height: "<< height << endl;
     vector<int> brush_radii = get_brushes();
 
-    sobel_filters = input->sobel();
-    sobel_x = sobel_filters[1];
-    cout<<sobel_x->getRGB(4,4).get_b()<<endl;
-    sobel_y = sobel_filters[2];
-
     Image* canvas = paint(input, brush_radii);
-    // input->blur(2, 3);
+    canvas->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/output.ppm");
+    cout<<"COMPLETED WRITE"<<endl;
+
+    delete input;
+    delete canvas;
+    return 0;
 }

@@ -36,9 +36,10 @@ public:
     void addColor(int, int, Color);
 
     vector<vector<float>> operator-(Image);
-    Image* blur(int, int);
-    Image* grayscale();
-    vector<Image*> sobel();
+    Image blur(int, int);
+    void sobel_full();
+    Image sobel_x();
+    Image sobel_y();
     
 private:
     char m_magic_number[2];
@@ -49,6 +50,7 @@ private:
     int const sobel_2[3] = {1, 2, 1};
     Color** m_image;
 
+    Image grayscale();
     vector<vector<float>> calculate_kernel(int, int);
 };
 

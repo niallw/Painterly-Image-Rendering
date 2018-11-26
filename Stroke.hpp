@@ -11,7 +11,7 @@
 
 class Stroke{
     public:
-        Stroke(int, int, int, Image*);
+        Stroke(int, int, int, Color);
         ~Stroke();
 
         friend ostream& operator<<(ostream& stream, const Stroke& stroke){
@@ -22,13 +22,13 @@ class Stroke{
         }
 
         Color get_color();
+        vector<Vector*> get_control_points();
         void add_control_point(int, int);
 
     private:
         int radius;
         vector<Vector*> control_points;
         Color color;
-        Image* reference_image;
 };
 
 #endif /* Stroke_hpp */
