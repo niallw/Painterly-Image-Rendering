@@ -16,7 +16,7 @@ int height, width;
 const float GRID_FACTOR = 0.5;
 const int MIN_BRUSH_SIZE = 2;
 const int BRUSH_RATIO = 2/1;
-const int NUM_BRUSHES = 2;
+const int NUM_BRUSHES = 1;
 const float THRESHOLD = 100.0;
 const float CURVATURE_FILTER = 1.0;
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/";
@@ -128,25 +128,34 @@ Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image,
 
 vector<vector<float>> calc_circ(int c_x, int c_y, int r){
     vector<vector<float>> points;
+//    if (c_x > 200)
+//        cout << c_x << endl;
 
     for (int x = c_x - r; x <= c_x; x++){
         for (int y = c_y - r; y <= c_y; y++){
-            if ((x - c_x)*(x - c_x) + (y - c_y)*(y - c_y) <= r*r){
+            int test = (x - c_x)*(x - c_x) + (y - c_y)*(y - c_y);
+            if (test <= r*r){
                 int x_sym = c_x - (x - c_x);
                 int y_sym = c_y - (y - c_y);
-                if (x < 0 || x >= width || y < 0 || y >= height ||
-                x_sym < 0 || x_sym >= width || y_sym < 0 || y_sym >= height){
+                if (x < 0 || x >= height || y < 0 || y >= width ||
+                    x_sym < 0 || x_sym >= height || y_sym < 0 || y_sym >= width){
                     break;
                 }
+//                cout << x << endl;
+
                 vector<float> p1, p2, p3, p4;
                 p1.push_back(x);
                 p1.push_back(y);
+
                 p2.push_back(x);
                 p2.push_back(y_sym);
+
                 p3.push_back(x_sym);
                 p3.push_back(y);
+
                 p4.push_back(x_sym);
                 p4.push_back(y_sym);
+
                 points.push_back(p1);
                 points.push_back(p2);
                 points.push_back(p3);
@@ -154,7 +163,7 @@ vector<vector<float>> calc_circ(int c_x, int c_y, int r){
             }
         }
     }
-    
+
     return points;
 }
 
@@ -252,7 +261,7 @@ vector<int> get_brushes(){
 }
 
 int main(){
-    Image* input = new Image(path + "cat0.ppm");
+    Image* input = new Image(path + "filed cat.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "width: " << width << endl;
