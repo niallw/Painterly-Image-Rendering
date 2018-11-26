@@ -6,12 +6,12 @@
 #include "Image.hpp"
 #include "Color.hpp"
 
-#define MAX_STROKE_LENGTH 10 //TODO: change number?
-#define MIN_STROKE_LENGTH 1 //TODO: change number?
+#define MAX_STROKE_LENGTH 0 //TODO: change number?
+#define MIN_STROKE_LENGTH 0 //TODO: change number?
 
 class Stroke{
     public:
-        Stroke(int, int, int, Color);
+        Stroke(int, int, int);
         ~Stroke();
 
         friend ostream& operator<<(ostream& stream, const Stroke& stroke){
@@ -21,6 +21,8 @@ class Stroke{
             return stream;
         }
 
+        void set_color(Color);
+        int get_radius();
         Color get_color();
         vector<Vector*> get_control_points();
         void add_control_point(int, int);

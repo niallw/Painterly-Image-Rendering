@@ -67,10 +67,11 @@ Image::Image(string file_name){
 }
 
 Image::~Image(void){
-    for(int i = 0; i < m_height; i++){
-        delete [] m_image[i];
-    }
-    delete [] m_image;
+    //TODO: fix this. destructor is giving seg fault
+//    for(int i = 0; i < m_height; i++){
+//        delete [] m_image[i];
+//    }
+//    delete [] m_image;
 }
 
 void Image::setColor(int h, int w, Color c){
@@ -95,6 +96,9 @@ Color** Image::getImage(){
 }
 
 Color Image::getRGB(int r, int c){
+//    if (r == 124)
+//        this->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER "
+//                         "GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/bug.ppm");
     return m_image[r][c];
 }
 
@@ -221,6 +225,7 @@ Image Image::blur(int radius, int std_dev){
                 }
             }
 
+            new_val.clamp();
             output.addColor(row, col, new_val);
         }
     }
@@ -333,6 +338,6 @@ Image Image::sobel_y(){
     }
 
     // TODO: remove this writeImage call
-    sobel_y.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/2d_xsobel.ppm");
+    sobel_y.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/2d_ysobel.ppm");
     return sobel_y;
 }

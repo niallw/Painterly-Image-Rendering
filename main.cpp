@@ -13,12 +13,12 @@
 using namespace std;
 
 int height, width;
-const int GRID_FACTOR = 2;
+const float GRID_FACTOR = 0.5;
 const int MIN_BRUSH_SIZE = 2;
 const int BRUSH_RATIO = 2/1;
-const int NUM_BRUSHES = 1;
-const float THRESHOLD = 0.2;
-const float CURVATURE_FILTER = 1;
+const int NUM_BRUSHES = 2;
+const float THRESHOLD = 100.0;
+const float CURVATURE_FILTER = 1.0;
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/";
 auto rng = default_random_engine {};
 
@@ -59,17 +59,20 @@ vector<vector<float>> get_neighbors(vector<vector<float>> diff_map, int row, int
     return neighbors;
 }
 
-Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image, 
+Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image,
                     Image* canvas, Image* sobel_x, Image* sobel_y){
-    Stroke* stroke = new Stroke(x, y, brush_size, ref_image->getRGB(x, y));
-    Color stroke_color = stroke->get_color();
+    Stroke* stroke = new Stroke(x, y, brush_size);
+    Color stroke_color = ref_image->getRGB(x, y);
+    stroke->set_color(stroke_color);
     int cur_x = x;
     int cur_y = y;
     float last_Dx = 0;
     float last_Dy = 0;
 
-    for (int i = 0; i < MAX_STROKE_LENGTH; i++){ //TODO: make i start at 1 and go <= ?
-        Color ref_image_color = ref_image->getRGB(cur_x, cur_y);
+    for (int i = 1; i <= MAX_STROKE_LENGTH; i++){ //TODO: make i start at 1 and go <= ? thats what the paper has
+        Color ref_image_color = Color(ref_image->getRGB(cur_x, cur_y).get_r(),
+                                      ref_image->getRGB(cur_x, cur_y).get_g(),
+                                      ref_image->getRGB(cur_x, cur_y).get_b());
         Color canvas_color = canvas->getRGB(cur_x, cur_y);
 
         if ((i > MIN_STROKE_LENGTH) &&
@@ -104,11 +107,16 @@ Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image,
         d_y = CURVATURE_FILTER * (d_y) + (1 - CURVATURE_FILTER) * last_Dy;
         float denom = sqrt(d_x * d_x + d_y * d_y); // Just do it once because it's expensive
         d_x = d_x / denom;
-        d_y = d_y / denom; 
-        if (d_x < 0) d_x = 0;
-        if (d_y < 0) d_y = 0;
+        d_y = d_y / denom;
         cur_x = cur_x + brush_size * d_x;
         cur_y = cur_y + brush_size * d_y;
+
+        // Clamp
+        if (cur_x < 0) cur_x = 0;
+        if (cur_y < 0) cur_y = 0;
+        if (cur_x >= width) cur_x = width - 1;
+        if (cur_y >= height) cur_y = height - 1;
+
         last_Dx = d_x;
         last_Dy = d_y;
 
@@ -116,6 +124,38 @@ Stroke* make_stroke(int x, int y, int brush_size, Image* ref_image,
     }
 
     return stroke;
+}
+
+vector<vector<float>> calc_circ(int c_x, int c_y, int r){
+    vector<vector<float>> points;
+
+    for (int x = c_x - r; x <= c_x; x++){
+        for (int y = c_y - r; y <= c_y; y++){
+            if ((x - c_x)*(x - c_x) + (y - c_y)*(y - c_y) <= r*r){
+                int x_sym = c_x - (x - c_x);
+                int y_sym = c_y - (y - c_y);
+                if (x < 0 || x >= width || y < 0 || y >= height ||
+                x_sym < 0 || x_sym >= width || y_sym < 0 || y_sym >= height){
+                    break;
+                }
+                vector<float> p1, p2, p3, p4;
+                p1.push_back(x);
+                p1.push_back(y);
+                p2.push_back(x);
+                p2.push_back(y_sym);
+                p3.push_back(x_sym);
+                p3.push_back(y);
+                p4.push_back(x_sym);
+                p4.push_back(y_sym);
+                points.push_back(p1);
+                points.push_back(p2);
+                points.push_back(p3);
+                points.push_back(p4);
+            }
+        }
+    }
+    
+    return points;
 }
 
 void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_layer){
@@ -146,7 +186,7 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
             if (area_error > THRESHOLD){
                 int max_row;
                 int max_col;
-                float max = INT_MIN;
+                float max = INTMAX_MIN;
 
                 for (int i = 0; i < neighboring_points.size(); i++){
                     if (neighboring_points[i][2] > max){
@@ -155,8 +195,10 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
                         max = neighboring_points[i][2];
                     }
                 }
+                if (max_row == 116 && max_col == 235)
+                    cout<<"E"<<endl;
 
-                Stroke* s = make_stroke(max_row, max_col, brush_size, ref_image, 
+                Stroke* s = make_stroke(max_row, max_col, brush_size, ref_image,
                                         canvas, &sobel_x, &sobel_y);
                 strokes.push_back(s);
                 // cout<<"Stroke #"<<strokes.size()<<": "<<*s<<endl<<endl;
@@ -167,13 +209,16 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
     shuffle(strokes.begin(), strokes.end(), rng);
     for (auto stroke : strokes){
         auto points = stroke->get_control_points();
+//        cout<<points.size()<<endl;
         for (auto pt : points){
             int x = pt->get_x();
             int y = pt->get_y();
-            canvas->setColor(x, y, stroke->get_color());
+            vector<vector<float>> circle_points = calc_circ(x, y, stroke->get_radius());
+            for (auto circ_point : circle_points){
+                canvas->setColor(circ_point[0], circ_point[1], stroke->get_color());
+            }
         }
     }
-
 
     for (auto s : strokes){
         delete s;
@@ -187,6 +232,7 @@ Image* paint(Image* original_image, vector<int> radii){
 
     for (int brush_size : radii){
         Image ref_image = original_image->blur(brush_size, brush_size);
+        ref_image.writeImage(path + "ref.ppm"); //TODO: remove this write
         paint_layer(canvas, &ref_image, brush_size, first_layer);
         if (first_layer) first_layer = false;
     }
@@ -218,6 +264,6 @@ int main(){
     cout<<"COMPLETED WRITE"<<endl;
 
     delete input;
-    // delete canvas; // FIXME: Deleting the canvas makes the program crash for some reason.
+    // delete canvas;
     return 0;
 }
