@@ -26,9 +26,9 @@ vector<vector<float>> generate_blank_canvas(){
     vector<vector<float>> diff;
 
     //TODO: I swapped width and height in the for loops cuz seg fault. i'm not sure if it was correct before or after swapping.
-    for (int row = 0; row < width; row++){
+    for (int row = 0; row < height; row++){
         vector<float> temp;
-        for (int col = 0; col < height; col++){
+        for (int col = 0; col < width; col++){
             temp.push_back(INTMAX_MAX);
         }
         diff.push_back(temp);
@@ -39,14 +39,16 @@ vector<vector<float>> generate_blank_canvas(){
 
 vector<vector<float>> get_neighbors(vector<vector<float>> diff_map, int row, int col, int grid_size){
     vector<vector<float>> neighbors;
+//    if (col == 340)
+//        cout <<"A"<<endl;
 
     for (int i = -(grid_size/2); i <= grid_size/2; i++){
         for (int j = -(grid_size/2); j <= grid_size/2; j++){
             int neighbor_row = row + i;
             int neighbor_col = col + j;
 
-            if (neighbor_row >= 0 && neighbor_row < diff_map.size() &&
-                neighbor_col >= 0 && neighbor_col < diff_map[0].size()){
+            if (neighbor_row >= 0 && neighbor_row < height &&
+                neighbor_col >= 0 && neighbor_col < width){
                 vector<float> temp;
                 temp.push_back(neighbor_row);
                 temp.push_back(neighbor_col);
@@ -185,8 +187,11 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
     // Calculate error in difference map to locate regions we want to paint
     for (int row = 0; row < height; row+=grid_size){
         for (int col = 0; col < width; col+=grid_size){
+//            if (col == 340)
+//                cout <<"A"<<endl;
             vector<vector<float>> neighboring_points = get_neighbors(difference, row, col, grid_size);
             float area_error = 0;
+
 
             for (int i = 0; i < neighboring_points.size(); i++)
                 area_error += neighboring_points[i][2];
@@ -215,6 +220,7 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
         }
     }
 
+    Stroke* last = strokes[strokes.size()-1];
     shuffle(strokes.begin(), strokes.end(), rng);
     for (auto stroke : strokes){
         auto points = stroke->get_control_points();
@@ -261,7 +267,7 @@ vector<int> get_brushes(){
 }
 
 int main(){
-    Image* input = new Image(path + "filed cat.ppm");
+    Image* input = new Image(path + "cat0.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "width: " << width << endl;
