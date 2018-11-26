@@ -206,7 +206,7 @@ vector<int> get_brushes(){
 }
 
 int main(){
-    Image* input = new Image(path + "cat.ppm");
+    Image* input = new Image(path + "cat0.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "width: " << width << endl;
@@ -218,6 +218,6 @@ int main(){
     cout<<"COMPLETED WRITE"<<endl;
 
     delete input;
-    delete canvas;
+    // delete canvas; // FIXME: Deleting the canvas makes the program crash for some reason.
     return 0;
 }
