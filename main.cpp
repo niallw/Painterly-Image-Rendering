@@ -14,13 +14,16 @@ using namespace std;
 
 int height, width;
 const float GRID_FACTOR = 0.5;
-const int MIN_BRUSH_SIZE = 2;
+const int MIN_BRUSH_SIZE = 3;
 const int BRUSH_RATIO = 2/1;
 const int NUM_BRUSHES = 1;
 const float THRESHOLD = 100.0;
 const float CURVATURE_FILTER = 1.0;
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/";
 auto rng = default_random_engine {};
+
+// TODO: FIXME: B SPLINE WEBSITE. DELETE AFTER
+// http://research.engr.utexas.edu/cagd/B-Spline-Interaction/
 
 vector<vector<float>> generate_blank_canvas(){
     vector<vector<float>> diff;
@@ -267,7 +270,7 @@ vector<int> get_brushes(){
 }
 
 int main(){
-    Image* input = new Image(path + "filed cat.ppm");
+    Image* input = new Image(path + "mountains.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "width: " << width << endl;
