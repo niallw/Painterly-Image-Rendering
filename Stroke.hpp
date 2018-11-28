@@ -6,7 +6,7 @@
 #include "Image.hpp"
 #include "Color.hpp"
 
-#define MAX_STROKE_LENGTH 5 //TODO: change number?
+#define MAX_STROKE_LENGTH 3 //TODO: change number?
 #define MIN_STROKE_LENGTH 0 //TODO: change number?
 
 class Stroke{
