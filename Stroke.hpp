@@ -39,6 +39,7 @@ class Stroke{
         Color color;
 
         int calculate_degree(int, int);
+        vector<float> build_knot_vector();
 };
 
 #endif /* Stroke_hpp */

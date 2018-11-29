@@ -50,10 +50,27 @@ Vector* Stroke::calculate_spline(float t){
 }
 
 int Stroke::calculate_degree(int m, int n){
-    return m - n - 1;
+    return m - n - 1;   
+}
+
+vector<float> Stroke::build_knot_vector(){
+    vector<float> knots;
+    int degree = calculate_degree(T_RESOLUTION, control_points.size());
+    int num_internal = (T_RESOLUTION - degree - 1) - (degree + 1);
+    int internal_count = 0;
+
+    for (int i = 0; i < control_points.size(); i++){
+        if (i <= degree) knots.push_back(0.0);
+        else if (i >= T_RESOLUTION - degree) knots.push_back(1.0);
+        else knots.push_back((1.0 / num_internal) * internal_count++);
+    }
+
+    return knots;
 }
 
 float Stroke::calculate_N(float t, int i, int j){
+    int degree = calculate_degree(T_RESOLUTION, control_points.size());
+    // vector<float> knots = build_knot_vector();
     float t_1 = (1.0 / T_RESOLUTION) * i;
     float t_2 = (1.0 / T_RESOLUTION) * (i + j);
     float t_3 = (1.0 / T_RESOLUTION) * (i + 1);
