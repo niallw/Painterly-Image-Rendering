@@ -270,18 +270,65 @@ vector<int> get_brushes(){
 }
 
 int main(){
-    Image* input = new Image(path + "mountains.ppm");
+    Image* input = new Image(path + "cat0.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "width: " << width << endl;
     cout << "height: "<< height << endl;
     vector<int> brush_radii = get_brushes();
 
-    Image* canvas = paint(input, brush_radii);
-    canvas->writeImage(path + "output.ppm");
-    cout<<"COMPLETED WRITE"<<endl;
+    // Image* canvas = paint(input, brush_radii);
+    // canvas->writeImage(path + "output.ppm");
+    // cout<<"COMPLETED WRITE"<<endl;
 
     delete input;
+
+    Image* c = new Image(500, 500, 255);
+    height = c->getHeight();
+    width = c->getWidth();
+    Stroke s = Stroke(100, 100, 10);
+    s.set_color(Color(1.0, 0.0, 0.0));
+    s.add_control_point(232,71);
+    s.add_control_point(148,294);
+    s.add_control_point(310,115);
+    s.add_control_point(375,280);
+
+    for (auto pt : s.get_control_points()){
+        int x = pt->get_x();
+        int y = pt->get_y();
+        int r = s.get_radius();
+        cout<<x<<" | "<<y<<endl;
+        vector<vector<float>> circle_points = calc_circ(y, x, r);
+        int si = circle_points.size();
+        for (auto circ_point : circle_points){
+            c->setColor(circ_point[0], circ_point[1], s.get_color());
+        }
+    }
+
+    int degree = s.get_control_points().size() - 1;
+    for (float t = 0.0; t <= 1.0; t+= 1.0/T_RESOLUTION){
+        Vector sum = Vector(0.0, 0.0);
+
+        for (int i = 0;i < s.get_control_points().size(); i++){
+            Vector next = *(s.get_control_points()[i]);
+            float n = s.calculate_N(t, i, degree);
+            cout<<"t: "<<t<<" | N: "<<n<<endl;
+            // cout<<"ctrl pt: ("<<next.get_x()<<", "<<next.get_y()<<")"<<endl;
+            next = next * n;
+            sum = sum + next;
+        }
+
+        cout<<"("<<(int)sum.get_x()<<", "<<(int)sum.get_y()<<")"<<endl;
+
+        vector<vector<float>> circle_points = calc_circ((int)sum.get_x(), (int)sum.get_y(), s.get_radius());
+
+        for (auto circ_point : circle_points){
+            c->setColor(circ_point[0], circ_point[1], Color(0.0, 1.0, 0.0));
+        }
+    }
+
+    c->writeImage(path + "spline.ppm");
+
     // delete canvas;
     return 0;
 }
