@@ -13,18 +13,19 @@
 using namespace std;
 
 int height, width;
-const float GRID_FACTOR = 0.5;
+const float GRID_FACTOR = 1.0;
 const int MIN_BRUSH_SIZE = 3;
 const int BRUSH_RATIO = 2/1;
 const int NUM_BRUSHES = 1;
-const float THRESHOLD = 100.0;
-const float CURVATURE_FILTER = 1.0;
+const float THRESHOLD = 50.0;
+const float CURVATURE_FILTER = 0.25;
 const int SPLINE_DEGREE = 3; // Cubic spline
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/";
 auto rng = default_random_engine {};
 
 // TODO: FIXME: B SPLINE WEBSITE. DELETE AFTER
 // http://research.engr.utexas.edu/cagd/B-Spline-Interaction/
+// http://nurbscalculator.in/
 
 /** Creates a difference map that always returns max int which will guarantee
  *  that we paint strokes. The difference map error (error between the reference image
@@ -156,55 +157,6 @@ Stroke* make_stroke(int y, int x, int brush_size, Image* ref_image,
     return stroke;
 }
 
-/** Calculate the pixels about a pixel that fall into a circle that is drawn
- *  at that pixel center. This is used so we know which pixels to fill in
- *  when rendering the strokes.
- *  c_x - x-coordinate of the center of the circle.
- *  c_y - y-coordinate of the center of the circle.
- *  r - Radius of the circle.
- */
-// TODO: CHANGE THE NAMES OF C_X AND C_Y. C_X IS CURRENTLY THE ROW, AND C_Y IS THE COL
-vector<vector<float>> calc_circ(int c_x, int c_y, int r){
-    vector<vector<float>> points;
-//    if (c_x > 200)
-//        cout << c_x << endl;
-
-    for (int x = c_x - r; x <= c_x; x++){
-        for (int y = c_y - r; y <= c_y; y++){
-            int test = (x - c_x)*(x - c_x) + (y - c_y)*(y - c_y);
-            if (test <= r*r){
-                int x_sym = c_x - (x - c_x);
-                int y_sym = c_y - (y - c_y);
-                if (x < 0 || x >= height || y < 0 || y >= width ||
-                    x_sym < 0 || x_sym >= height || y_sym < 0 || y_sym >= width){
-                    break;
-                }
-//                cout << x << endl;
-
-                vector<float> p1, p2, p3, p4;
-                p1.push_back(x);
-                p1.push_back(y);
-
-                p2.push_back(x);
-                p2.push_back(y_sym);
-
-                p3.push_back(x_sym);
-                p3.push_back(y);
-
-                p4.push_back(x_sym);
-                p4.push_back(y_sym);
-
-                points.push_back(p1);
-                points.push_back(p2);
-                points.push_back(p3);
-                points.push_back(p4);
-            }
-        }
-    }
-
-    return points;
-}
-
 /** Paint one layer of the image with the specified brush size. The painting
  *  is based off a Gaussian blurred image with a standard deviation based on
  *  the brush size.
@@ -233,11 +185,8 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
     // Calculate error in difference map to locate regions we want to paint
     for (int row = 0; row < height; row+=grid_size){
         for (int col = 0; col < width; col+=grid_size){
-//            if (col == 340)
-//                cout <<"A"<<endl;
             vector<vector<float>> neighboring_points = get_neighbors(difference, row, col, grid_size);
             float area_error = 0;
-
 
             for (int i = 0; i < neighboring_points.size(); i++)
                 area_error += neighboring_points[i][2];
@@ -255,54 +204,56 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
                         max = neighboring_points[i][2];
                     }
                 }
-                if (max_row == 116 && max_col == 235)
-                    cout<<"E"<<endl;
 
                 Stroke* s = make_stroke(max_row, max_col, brush_size, ref_image,
                                         canvas, &sobel_x, &sobel_y);
                 strokes.push_back(s);
-                // cout<<"Stroke #"<<strokes.size()<<": "<<*s<<endl<<endl;
             }
         }
     }
 
-    Stroke* last = strokes[strokes.size()-1];
-    shuffle(strokes.begin(), strokes.end(), rng);
-    for (auto stroke : strokes){
-        // B SPLINE
-        int degree = T_RESOLUTION - stroke->get_control_points().size() - 1;
-        auto points = stroke->get_control_points();
-
-        for (float t = 0.0; t < 1.0; t+= 1.0/(T_RESOLUTION)){
-            Vector sum = Vector(0.0, 0.0);
-
-            for (int i = 0;i < stroke->get_control_points().size(); i++){
-                Vector next = *(stroke->get_control_points()[i]);
-//                float n = stroke->calculate_N(t, i, degree);
-                // cout<<"t: "<<t<<" | N: "<<n<<endl;
-                // cout<<"ctrl pt: ("<<next.get_x()<<", "<<next.get_y()<<")"<<endl;
-//                next = next * n;
-//                sum = sum + next;
-            }
-
-            // cout<<"("<<(int)sum.get_x()<<", "<<(int)sum.get_y()<<")"<<endl;
-            vector<vector<float>> circle_points = calc_circ((int)sum.get_x(), (int)sum.get_y(), stroke->get_radius());
-
-            for (auto circ_point : circle_points){
-                canvas->setColor(circ_point[1], circ_point[0], stroke->get_color());
-            }
-        }
-
-        // CONTROL POINTS
-        // for (auto pt : points){
-        //     int x = pt->get_x();
-        //     int y = pt->get_y();
-        //     vector<vector<float>> circle_points = calc_circ(y, x, stroke->get_radius());
-        //     for (auto circ_point : circle_points){
-        //         canvas->setColor(circ_point[0], circ_point[1], stroke->get_color());
-        //     }
-        // }
+    // Draw each stroke
+    for (Stroke* s : strokes){
+        s->draw_stroke(canvas, SPLINE_DEGREE);
     }
+
+//     Stroke* last = strokes[strokes.size()-1];
+//     shuffle(strokes.begin(), strokes.end(), rng);
+//     for (auto stroke : strokes){
+//         // B SPLINE
+//         int degree = T_RESOLUTION - stroke->get_control_points().size() - 1;
+//         auto points = stroke->get_control_points();
+
+//         for (float t = 0.0; t < 1.0; t+= 1.0/(T_RESOLUTION)){
+//             Vector sum = Vector(0.0, 0.0);
+
+//             for (int i = 0;i < stroke->get_control_points().size(); i++){
+//                 Vector next = *(stroke->get_control_points()[i]);
+// //                float n = stroke->calculate_N(t, i, degree);
+//                 // cout<<"t: "<<t<<" | N: "<<n<<endl;
+//                 // cout<<"ctrl pt: ("<<next.get_x()<<", "<<next.get_y()<<")"<<endl;
+// //                next = next * n;
+// //                sum = sum + next;
+//             }
+
+//             // cout<<"("<<(int)sum.get_x()<<", "<<(int)sum.get_y()<<")"<<endl;
+//             vector<vector<float>> circle_points = calc_circ((int)sum.get_x(), (int)sum.get_y(), stroke->get_radius());
+
+//             for (auto circ_point : circle_points){
+//                 canvas->setColor(circ_point[1], circ_point[0], stroke->get_color());
+//             }
+//         }
+
+//         // CONTROL POINTS
+//         // for (auto pt : points){
+//         //     int x = pt->get_x();
+//         //     int y = pt->get_y();
+//         //     vector<vector<float>> circle_points = calc_circ(y, x, stroke->get_radius());
+//         //     for (auto circ_point : circle_points){
+//         //         canvas->setColor(circ_point[0], circ_point[1], stroke->get_color());
+//         //     }
+//         // }
+//     }
 
     for (auto s : strokes){
         delete s;
@@ -342,33 +293,19 @@ vector<int> get_brushes(){
     return brushes;
 }
 
-vector<float> make_knot_vector(int m, int p, int n){
-    vector<float> knots;
-    for (int i = 0; i <= p; i++){
-        knots.push_back(0.0);
-    }
-    for (int i = 1; i <= n - p; i++){
-        knots.push_back((float)i/(float)(n-p+1));
-    }
-    for (int i = 0; i <= p; i++){
-        knots.push_back(1.0);
-    }
-    return knots;
-}
-
 int main(){
-    Image* input = new Image(path + "cat0.ppm");
+    Image* input = new Image(path + "filed cat.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "width: " << width << endl;
     cout << "height: "<< height << endl;
     vector<int> brush_radii = get_brushes();
 
-    // Image* canvas = paint(input, brush_radii);
-    // canvas->writeImage(path + "output.ppm");
-    // cout<<"COMPLETED WRITE"<<endl;
+    Image* canvas = paint(input, brush_radii);
+    canvas->writeImage(path + "output.ppm");
+    cout<<"COMPLETED WRITE"<<endl;
 
-    delete input;
+//     delete input;
 
     Image* c = new Image(500, 500, 255);
     height = c->getHeight();
@@ -379,47 +316,50 @@ int main(){
     s.add_control_point(148,294);
     s.add_control_point(310,115);
     s.add_control_point(375,280);
-    //  s.add_control_point(400,200);
+//      s.add_control_point(400,400);
     //  s.add_control_point(140,145);
     //  s.add_control_point(256,324);
     //  s.add_control_point(422,134);
-    float NUM_KNOTS = (float)(s.get_control_points().size() + 3 + 1);
+    
 
-    for (auto pt : s.get_control_points()){
-        int x = pt->get_x();
-        int y = pt->get_y();
-        int r = s.get_radius();
-        cout<<x<<" | "<<y<<endl;
-        vector<vector<float>> circle_points = calc_circ(y, x, r);
-        int si = circle_points.size();
-        for (auto circ_point : circle_points){
-            c->setColor(circ_point[0], circ_point[1], Color(1.0, 0.0, 0.0));
-        }
-    }
+    // for (auto pt : s.get_control_points()){
+    //     int x = pt->get_x();
+    //     int y = pt->get_y();
+    //     int r = s.get_radius();
+    //     cout<<x<<" | "<<y<<endl;
+    //     vector<vector<float>> circle_points = calc_circ(y, x, r);
+    //     int si = circle_points.size();
+    //     for (auto circ_point : circle_points){
+    //         c->setColor(circ_point[0], circ_point[1], Color(1.0, 0.0, 0.0));
+    //     }
+    // }
+    s.draw_stroke(c, SPLINE_DEGREE);
 
 
-    int num_ctrl_pts = s.get_control_points().size();
-    vector<float> knots = make_knot_vector(NUM_KNOTS, 3, s.get_control_points().size());
-    // int degree = (T_RESOLUTION - 1) - (num_ctrl_pts - 1) - 1;
-    for (float t = 0.0; t <= 1.0; t+= 1.0/100.0){
-        Vector sum = Vector(0.0, 0.0);
+//     int num_ctrl_pts = s.get_control_points().size();
+//     vector<float> knots = make_knot_vector(NUM_KNOTS, 3, s.get_control_points().size());
+//     // int degree = (T_RESOLUTION - 1) - (num_ctrl_pts - 1) - 1;
+//     for (float t = 0.0; t < 1.0; t+= 1.0/1000.0){
+//         Vector sum = Vector(0.0, 0.0);
 
-        for (int i = 0;i < num_ctrl_pts-1; i++){
-            Vector next = *(s.get_control_points()[i]);
-            float n = s.calculate_N(t, i, 3, knots);
-//            cout<<"t: "<<t<<" | N: "<<n<<endl;
-//            cout<<"ctrl pt: ("<<next.get_x()<<", "<<next.get_y()<<")"<<endl;
-            next = next * n;
-            sum = sum + next;
-        }
+//         for (int i = 0;i < num_ctrl_pts; i++){
+//             Vector next = *(s.get_control_points()[i]);
+//             float n = s.calculate_N(t, i, 3, knots);
+// //            cout<<"t: "<<t<<" | N: "<<n<<endl;
+// //            cout<<"ctrl pt: ("<<next.get_x()<<", "<<next.get_y()<<")"<<endl;
+//             next = next * n;
+//             sum = sum + next;
+//         }
 
-         cout<<"("<<(int)sum.get_x()<<", "<<(int)sum.get_y()<<")"<<endl;
-        vector<vector<float>> circle_points = calc_circ((int)sum.get_y(), (int)sum.get_x(), s.get_radius());
+//         if ((int)sum.get_x() == 324 && (int)sum.get_y() == 205)
+//             cout<<"a"<<endl;
+//         cout<<"("<<(int)sum.get_x()<<", "<<(int)sum.get_y()<<")"<<endl;
+//         vector<vector<float>> circle_points = calc_circ((int)sum.get_y(), (int)sum.get_x(), s.get_radius());
 
-        for (auto circ_point : circle_points){
-            c->setColor(circ_point[0], circ_point[1], Color(0.0, 1.0, 0.0));
-        }
-    }
+//         for (auto circ_point : circle_points){
+//             c->setColor(circ_point[0], circ_point[1], Color(0.0, 1.0, 0.0));
+//         }
+//     }
 
     c->writeImage(path + "spline.ppm");
 

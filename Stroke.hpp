@@ -6,9 +6,9 @@
 #include "Image.hpp"
 #include "Color.hpp"
 
-#define MAX_STROKE_LENGTH 4
-#define MIN_STROKE_LENGTH 1 
-#define T_RESOLUTION 50.0
+#define MAX_STROKE_LENGTH 16
+#define MIN_STROKE_LENGTH 10
+#define STROKE_RESOLUTION 500.0
 
 class Stroke{
     public:
@@ -29,8 +29,9 @@ class Stroke{
         void add_control_point(int, int);
 
         // B-spline methods
-        Vector* calculate_spline(float);
+        // Vector* calculate_spline(float);
         float calculate_N(float, int, int, vector<float>);
+        void draw_stroke(Image*, int);
 
     private:
         int radius;
@@ -39,7 +40,8 @@ class Stroke{
         Color color;
 
         int calculate_degree(int, int);
-        vector<float> build_knot_vector();
+        vector<float> make_knot_vector(int, int, int);
+        vector<vector<float>> calc_circ(int, int, int, int, int);
 };
 
 #endif /* Stroke_hpp */
