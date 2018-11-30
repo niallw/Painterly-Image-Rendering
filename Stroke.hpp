@@ -8,7 +8,7 @@
 
 #define MAX_STROKE_LENGTH 4
 #define MIN_STROKE_LENGTH 1 
-#define T_RESOLUTION 10.0
+#define T_RESOLUTION 50.0
 
 class Stroke{
     public:
@@ -30,7 +30,7 @@ class Stroke{
 
         // B-spline methods
         Vector* calculate_spline(float);
-        float calculate_N(float, int, int);
+        float calculate_N(float, int, int, float);
 
     private:
         int radius;
