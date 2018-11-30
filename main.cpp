@@ -26,7 +26,7 @@ auto rng = default_random_engine {};
 // TODO: FIXME: B SPLINE WEBSITE. DELETE AFTER
 // http://research.engr.utexas.edu/cagd/B-Spline-Interaction/
 
-/** Creates a difference map that always returns max int which will guarantee 
+/** Creates a difference map that always returns max int which will guarantee
  *  that we paint strokes. The difference map error (error between the reference image
  *  and our canvas) is always the max value with the difference map created by this
  *  function, which means the error is always above the threshold, so we always paint.
@@ -46,14 +46,14 @@ vector<vector<float>> generate_blank_canvas(){
 }
 
 /** Finds all pixels that are neighbors of a given pixel.
- *  diff_map - The point-wise color difference map. AKA the pixel values that 
- *             represent the color difference between the reference image and 
+ *  diff_map - The point-wise color difference map. AKA the pixel values that
+ *             represent the color difference between the reference image and
  *             our current canvas.
  *  row - y-coordinate of the pixel whose neighbors we want to find.
  *  col - x-coordinate of the pixel whose neighbors we want to find.
  *  grid_size - The size of the "window" we sample the image with. This is based on
  *              the brush size.
- */ 
+ */
 vector<vector<float>> get_neighbors(vector<vector<float>> diff_map, int row, int col, int grid_size){
     vector<vector<float>> neighbors;
 //    if (col == 340)
@@ -157,7 +157,7 @@ Stroke* make_stroke(int y, int x, int brush_size, Image* ref_image,
 }
 
 /** Calculate the pixels about a pixel that fall into a circle that is drawn
- *  at that pixel center. This is used so we know which pixels to fill in 
+ *  at that pixel center. This is used so we know which pixels to fill in
  *  when rendering the strokes.
  *  c_x - x-coordinate of the center of the circle.
  *  c_y - y-coordinate of the center of the circle.
@@ -342,6 +342,20 @@ vector<int> get_brushes(){
     return brushes;
 }
 
+vector<float> make_knot_vector(int m, int p, int n){
+    vector<float> knots;
+    for (int i = 0; i <= p; i++){
+        knots.push_back(0.0);
+    }
+    for (int i = 1; i <= n - p; i++){
+        knots.push_back((float)i/(float)(n-p+1));
+    }
+    for (int i = 0; i <= p; i++){
+        knots.push_back(1.0);
+    }
+    return knots;
+}
+
 int main(){
     Image* input = new Image(path + "cat0.ppm");
     height = input->getHeight();
@@ -365,10 +379,10 @@ int main(){
     s.add_control_point(148,294);
     s.add_control_point(310,115);
     s.add_control_point(375,280);
-     s.add_control_point(400,200);
-     s.add_control_point(140,145);
-     s.add_control_point(256,324);
-     s.add_control_point(422,134);
+    //  s.add_control_point(400,200);
+    //  s.add_control_point(140,145);
+    //  s.add_control_point(256,324);
+    //  s.add_control_point(422,134);
     float NUM_KNOTS = (float)(s.get_control_points().size() + 3 + 1);
 
     for (auto pt : s.get_control_points()){
@@ -385,20 +399,21 @@ int main(){
 
 
     int num_ctrl_pts = s.get_control_points().size();
+    vector<float> knots = make_knot_vector(NUM_KNOTS, 3, s.get_control_points().size());
     // int degree = (T_RESOLUTION - 1) - (num_ctrl_pts - 1) - 1;
-    for (float t = 0.0; t <= 1.0; t+= 1.0/NUM_KNOTS){
+    for (float t = 0.0; t <= 1.0; t+= 1.0/100.0){
         Vector sum = Vector(0.0, 0.0);
 
-        for (int i = 0;i < num_ctrl_pts; i++){
+        for (int i = 0;i < num_ctrl_pts-1; i++){
             Vector next = *(s.get_control_points()[i]);
-            float n = s.calculate_N(t, i, 3, NUM_KNOTS);
-            cout<<"t: "<<t<<" | N: "<<n<<endl;
-            cout<<"ctrl pt: ("<<next.get_x()<<", "<<next.get_y()<<")"<<endl;
+            float n = s.calculate_N(t, i, 3, knots);
+//            cout<<"t: "<<t<<" | N: "<<n<<endl;
+//            cout<<"ctrl pt: ("<<next.get_x()<<", "<<next.get_y()<<")"<<endl;
             next = next * n;
             sum = sum + next;
         }
 
-        // cout<<"("<<(int)sum.get_x()<<", "<<(int)sum.get_y()<<")"<<endl;
+         cout<<"("<<(int)sum.get_x()<<", "<<(int)sum.get_y()<<")"<<endl;
         vector<vector<float>> circle_points = calc_circ((int)sum.get_y(), (int)sum.get_x(), s.get_radius());
 
         for (auto circ_point : circle_points){

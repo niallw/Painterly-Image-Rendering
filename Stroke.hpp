@@ -30,7 +30,7 @@ class Stroke{
 
         // B-spline methods
         Vector* calculate_spline(float);
-        float calculate_N(float, int, int, float);
+        float calculate_N(float, int, int, vector<float>);
 
     private:
         int radius;

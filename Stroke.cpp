@@ -41,9 +41,9 @@ Vector* Stroke::calculate_spline(float t){
 
     for (int i = 0; i < control_points.size(); i++){
         Vector* cur_control_point = control_points[i];
-        float cur_N = calculate_N(t, i, degree, 1.0);
+        // float cur_N = calculate_N(t, i, degree, 1.0);
 
-        *sum = *sum + (*cur_control_point * cur_N);
+        // *sum = *sum + (*cur_control_point * cur_N);
     }
     
     return sum;
@@ -68,13 +68,13 @@ vector<float> Stroke::build_knot_vector(){
     return knots;
 }
 
-float Stroke::calculate_N(float t, int i, int j, float NUM_KNOTS){
+float Stroke::calculate_N(float t, int i, int j, vector<float> knots){
     // int degree = calculate_degree(NUM_KNOTS, control_points.size());
     // vector<float> knots = build_knot_vector();
-    float t_1 = (1.0 / NUM_KNOTS) * i;
-    float t_2 = (1.0 / NUM_KNOTS) * (i + j);
-    float t_3 = (1.0 / NUM_KNOTS) * (i + 1);
-    float t_4 = (1.0 / NUM_KNOTS) * (i + j + 1);
+    float t_1 = knots[i];
+    float t_2 = knots[(i + j)];
+    float t_3 = knots[(i + 1)];
+    float t_4 = knots[(i + j + 1)];
 
     // Base case of basis function
     if (j == 0){
@@ -82,6 +82,10 @@ float Stroke::calculate_N(float t, int i, int j, float NUM_KNOTS){
         else return 0;
     }
 
-    return (((t - t_1) / (t_2 - t_1)) * calculate_N(t, i, j-1, NUM_KNOTS)) +
-           (((t_4 - t) / (t_4 - t_3)) * calculate_N(t, i+1, j-1, NUM_KNOTS));
+    // Check for divide by 0
+    float temp1 = (t_2 - t_1 == 0) ? 0 : ((t - t_1) / (t_2 - t_1)) * calculate_N(t, i, j-1, knots);
+    float temp2 = (t_4 - t_3 == 0) ? 0 : ((t_4 - t) / (t_4 - t_3)) * calculate_N(t, i+1, j-1, knots);
+
+
+    return temp1 + temp2;
 }
