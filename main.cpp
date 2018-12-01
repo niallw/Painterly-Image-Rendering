@@ -14,9 +14,9 @@ using namespace std;
 
 int height, width;
 const float GRID_FACTOR = 1.0;
-const int MIN_BRUSH_SIZE = 3;
+const int MIN_BRUSH_SIZE = 2;
 const int BRUSH_RATIO = 2/1;
-const int NUM_BRUSHES = 9;
+const int NUM_BRUSHES = 3;
 const float THRESHOLD = 50.0;
 const float CURVATURE_FILTER = 0.25;
 const int SPLINE_DEGREE = 3; // Cubic spline
@@ -100,7 +100,7 @@ Stroke* make_stroke(int y, int x, int brush_size, Image* ref_image,
     float last_Dx = 0;
     float last_Dy = 0;
 
-    for (int i = 1; i <= MAX_STROKE_LENGTH; i++){ //TODO: make i start at 1 and go <= ? thats what the paper has
+    for (int i = 1; i <= MAX_STROKE_LENGTH; i++){
         Color ref_image_color = Color(ref_image->getRGB(cur_y, cur_x).get_r(),
                                       ref_image->getRGB(cur_y, cur_x).get_g(),
                                       ref_image->getRGB(cur_y, cur_x).get_b());
@@ -213,6 +213,7 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
     }
 
     cout<<"num strokes: "<<strokes.size()<<endl;
+    shuffle(strokes.begin(), strokes.end(), rng);
     // Draw each stroke
     for (Stroke* s : strokes){
         s->draw_stroke(canvas, SPLINE_DEGREE);
@@ -294,7 +295,7 @@ vector<int> get_brushes(){
     return brushes;
 }
 
-void one_spline(){
+void one_spline(){ //TODO: FIXME: delete this
     Image* c = new Image(500, 500, 255);
     height = c->getHeight();
     width = c->getWidth();
@@ -353,7 +354,7 @@ void one_spline(){
 }
 
 int main(){
-    Image* input = new Image(path + "man.ppm");
+    Image* input = new Image(path + "cat0.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "width: " << width << endl;
