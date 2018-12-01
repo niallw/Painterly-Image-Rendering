@@ -1,3 +1,6 @@
+// Program to render images in the style of a painted image
+// Authors: James Plaut and Niall Williams
+
 #include <iostream>
 #include <vector>
 #include <cmath>
@@ -17,15 +20,11 @@ const float GRID_FACTOR = 1.0;
 const int MIN_BRUSH_SIZE = 2;
 const int BRUSH_RATIO = 2/1;
 const int NUM_BRUSHES = 3;
-const float THRESHOLD = 50.0;
-const float CURVATURE_FILTER = 0.25;
+const float THRESHOLD = 100;
+const float CURVATURE_FILTER = 1;
 const int SPLINE_DEGREE = 3; // Cubic spline
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/";
 auto rng = default_random_engine {};
-
-// TODO: FIXME: B SPLINE WEBSITE. DELETE AFTER
-// http://research.engr.utexas.edu/cagd/B-Spline-Interaction/
-// http://nurbscalculator.in/
 
 /** Creates a difference map that always returns max int which will guarantee
  *  that we paint strokes. The difference map error (error between the reference image
@@ -57,8 +56,6 @@ vector<vector<float>> generate_blank_canvas(){
  */
 vector<vector<float>> get_neighbors(vector<vector<float>> diff_map, int row, int col, int grid_size){
     vector<vector<float>> neighbors;
-//    if (col == 340)
-//        cout <<"A"<<endl;
 
     for (int i = -(grid_size/2); i <= grid_size/2; i++){
         for (int j = -(grid_size/2); j <= grid_size/2; j++){
@@ -142,7 +139,7 @@ Stroke* make_stroke(int y, int x, int brush_size, Image* ref_image,
         cur_x = cur_x + brush_size * d_x;
         cur_y = cur_y + brush_size * d_y;
 
-        // Clamp
+        // Clamp so that we don't paint outside the canvas. That would make a mess :)
         if (cur_x < 0) cur_x = 0;
         if (cur_y < 0) cur_y = 0;
         if (cur_x >= width) cur_x = width - 1;
@@ -182,7 +179,8 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
         difference = *canvas - *ref_image;
     }
 
-    // Calculate error in difference map to locate regions we want to paint
+    // Find the areas of the difference map that have the largest error
+    // to locate regions we want to paint
     for (int row = 0; row < height; row+=grid_size){
         for (int col = 0; col < width; col+=grid_size){
             vector<vector<float>> neighboring_points = get_neighbors(difference, row, col, grid_size);
@@ -212,52 +210,16 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
         }
     }
 
-    cout<<"num strokes: "<<strokes.size()<<endl;
+    // Draw each stroke. Shuffle the stroke order so that we don't
+    // get a "cascade" of strokes from the bottom right corner up to
+    // the top left corner.
+    cout<<"Number of strokes: "<<strokes.size()<<endl;
     shuffle(strokes.begin(), strokes.end(), rng);
-    // Draw each stroke
     for (Stroke* s : strokes){
         s->draw_stroke(canvas, SPLINE_DEGREE);
     }
 
-//     Stroke* last = strokes[strokes.size()-1];
-//     shuffle(strokes.begin(), strokes.end(), rng);
-//     for (auto stroke : strokes){
-//         // B SPLINE
-//         int degree = T_RESOLUTION - stroke->get_control_points().size() - 1;
-//         auto points = stroke->get_control_points();
-
-//         for (float t = 0.0; t < 1.0; t+= 1.0/(T_RESOLUTION)){
-//             Vector sum = Vector(0.0, 0.0);
-
-//             for (int i = 0;i < stroke->get_control_points().size(); i++){
-//                 Vector next = *(stroke->get_control_points()[i]);
-// //                float n = stroke->calculate_N(t, i, degree);
-//                 // cout<<"t: "<<t<<" | N: "<<n<<endl;
-//                 // cout<<"ctrl pt: ("<<next.get_x()<<", "<<next.get_y()<<")"<<endl;
-// //                next = next * n;
-// //                sum = sum + next;
-//             }
-
-//             // cout<<"("<<(int)sum.get_x()<<", "<<(int)sum.get_y()<<")"<<endl;
-//             vector<vector<float>> circle_points = calc_circ((int)sum.get_x(), (int)sum.get_y(), stroke->get_radius());
-
-//             for (auto circ_point : circle_points){
-//                 canvas->setColor(circ_point[1], circ_point[0], stroke->get_color());
-//             }
-//         }
-
-//         // CONTROL POINTS
-//         // for (auto pt : points){
-//         //     int x = pt->get_x();
-//         //     int y = pt->get_y();
-//         //     vector<vector<float>> circle_points = calc_circ(y, x, stroke->get_radius());
-//         //     for (auto circ_point : circle_points){
-//         //         canvas->setColor(circ_point[0], circ_point[1], stroke->get_color());
-//         //     }
-//         // }
-//     }
-
-    for (auto s : strokes){
+    for (Stroke* s : strokes){
         delete s;
     }
 }
@@ -272,6 +234,7 @@ Image* paint(Image* original_image, vector<int> radii){
     Image* canvas = new Image(width, height, 255);
 
     for (int brush_size : radii){
+        cout<<"Painting with brush size "<<brush_size<<endl;
         Image ref_image = original_image->blur(brush_size, brush_size);
         ref_image.writeImage(path + "ref.ppm"); //TODO: remove this write
         paint_layer(canvas, &ref_image, brush_size, first_layer);
@@ -282,7 +245,7 @@ Image* paint(Image* original_image, vector<int> radii){
 }
 
 /** Build the list of brushes based on the painting parameters.
- *  Basically just doubles the size of the previous brush size.
+ *  Basically just doubles the size of the previous brush.
  */
 vector<int> get_brushes(){
     vector<int> brushes;
@@ -295,66 +258,8 @@ vector<int> get_brushes(){
     return brushes;
 }
 
-void one_spline(){ //TODO: FIXME: delete this
-    Image* c = new Image(500, 500, 255);
-    height = c->getHeight();
-    width = c->getWidth();
-    Stroke s = Stroke(100, 100, 5);
-    s.set_color(Color(1.0, 0.0, 0.0));
-    s.add_control_point(232,71);
-    s.add_control_point(148,294);
-    s.add_control_point(310,115);
-    s.add_control_point(375,280);
-//      s.add_control_point(400,400);
-    //  s.add_control_point(140,145);
-    //  s.add_control_point(256,324);
-    //  s.add_control_point(422,134);
-    
-
-    // for (auto pt : s.get_control_points()){
-    //     int x = pt->get_x();
-    //     int y = pt->get_y();
-    //     int r = s.get_radius();
-    //     cout<<x<<" | "<<y<<endl;
-    //     vector<vector<float>> circle_points = calc_circ(y, x, r);
-    //     int si = circle_points.size();
-    //     for (auto circ_point : circle_points){
-    //         c->setColor(circ_point[0], circ_point[1], Color(1.0, 0.0, 0.0));
-    //     }
-    // }
-    s.draw_stroke(c, SPLINE_DEGREE);
-
-
-//     int num_ctrl_pts = s.get_control_points().size();
-//     vector<float> knots = make_knot_vector(NUM_KNOTS, 3, s.get_control_points().size());
-//     // int degree = (T_RESOLUTION - 1) - (num_ctrl_pts - 1) - 1;
-//     for (float t = 0.0; t < 1.0; t+= 1.0/1000.0){
-//         Vector sum = Vector(0.0, 0.0);
-
-//         for (int i = 0;i < num_ctrl_pts; i++){
-//             Vector next = *(s.get_control_points()[i]);
-//             float n = s.calculate_N(t, i, 3, knots);
-// //            cout<<"t: "<<t<<" | N: "<<n<<endl;
-// //            cout<<"ctrl pt: ("<<next.get_x()<<", "<<next.get_y()<<")"<<endl;
-//             next = next * n;
-//             sum = sum + next;
-//         }
-
-//         if ((int)sum.get_x() == 324 && (int)sum.get_y() == 205)
-//             cout<<"a"<<endl;
-//         cout<<"("<<(int)sum.get_x()<<", "<<(int)sum.get_y()<<")"<<endl;
-//         vector<vector<float>> circle_points = calc_circ((int)sum.get_y(), (int)sum.get_x(), s.get_radius());
-
-//         for (auto circ_point : circle_points){
-//             c->setColor(circ_point[0], circ_point[1], Color(0.0, 1.0, 0.0));
-//         }
-//     }
-
-    c->writeImage(path + "spline.ppm");
-}
-
 int main(){
-    Image* input = new Image(path + "cat0.ppm");
+    Image* input = new Image(path + "man.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "width: " << width << endl;
@@ -365,9 +270,7 @@ int main(){
     canvas->writeImage(path + "output.ppm");
     cout<<"COMPLETED WRITE"<<endl;
 
-    // one_spline();
-
     delete input;
-    // delete canvas;
+    delete canvas;
     return 0;
 }
