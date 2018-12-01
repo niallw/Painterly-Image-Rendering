@@ -16,7 +16,7 @@ int height, width;
 const float GRID_FACTOR = 1.0;
 const int MIN_BRUSH_SIZE = 3;
 const int BRUSH_RATIO = 2/1;
-const int NUM_BRUSHES = 1;
+const int NUM_BRUSHES = 9;
 const float THRESHOLD = 50.0;
 const float CURVATURE_FILTER = 0.25;
 const int SPLINE_DEGREE = 3; // Cubic spline
@@ -212,6 +212,7 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
         }
     }
 
+    cout<<"num strokes: "<<strokes.size()<<endl;
     // Draw each stroke
     for (Stroke* s : strokes){
         s->draw_stroke(canvas, SPLINE_DEGREE);
@@ -293,20 +294,7 @@ vector<int> get_brushes(){
     return brushes;
 }
 
-int main(){
-    Image* input = new Image(path + "filed cat.ppm");
-    height = input->getHeight();
-    width = input->getWidth();
-    cout << "width: " << width << endl;
-    cout << "height: "<< height << endl;
-    vector<int> brush_radii = get_brushes();
-
-    Image* canvas = paint(input, brush_radii);
-    canvas->writeImage(path + "output.ppm");
-    cout<<"COMPLETED WRITE"<<endl;
-
-//     delete input;
-
+void one_spline(){
     Image* c = new Image(500, 500, 255);
     height = c->getHeight();
     width = c->getWidth();
@@ -362,7 +350,23 @@ int main(){
 //     }
 
     c->writeImage(path + "spline.ppm");
+}
 
+int main(){
+    Image* input = new Image(path + "man.ppm");
+    height = input->getHeight();
+    width = input->getWidth();
+    cout << "width: " << width << endl;
+    cout << "height: "<< height << endl;
+    vector<int> brush_radii = get_brushes();
+
+    Image* canvas = paint(input, brush_radii);
+    canvas->writeImage(path + "output.ppm");
+    cout<<"COMPLETED WRITE"<<endl;
+
+    // one_spline();
+
+    delete input;
     // delete canvas;
     return 0;
 }

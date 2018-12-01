@@ -6,9 +6,9 @@
 #include "Image.hpp"
 #include "Color.hpp"
 
-#define MAX_STROKE_LENGTH 16
-#define MIN_STROKE_LENGTH 10
-#define STROKE_RESOLUTION 500.0
+#define MAX_STROKE_LENGTH 10
+#define MIN_STROKE_LENGTH 4
+#define STROKE_RESOLUTION 100.0
 
 class Stroke{
     public:

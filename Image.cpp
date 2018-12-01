@@ -105,9 +105,9 @@ Color Image::getRGB(int r, int c){
 vector<vector<float>> Image::operator-(Image i){
     vector<vector<float>> difference;
 
-    for (int row = 0; row < m_width; row++){
+    for (int row = 0; row < m_height; row++){
         vector<float> temp;
-        for (int col = 0; col < m_height; col++){
+        for (int col = 0; col < m_width; col++){
             float r_1 = m_image[row][col].get_r();
             float g_1 = m_image[row][col].get_g();
             float b_1 = m_image[row][col].get_b();
