@@ -1,6 +1,7 @@
 //  Image.cpp
 //
-//  Created by Niall and Jimmy on November 11, 2018.
+//  Edited by Niall and Jimmy on November 11, 2018.
+//  Created by Peck, Tabitha on 9/18/14.
 //  based on code from stack overflow: http://stackoverflow.com/questions/2693631/read-ppm-file-and-store-it-in-an-array-coded-with-c
 
 #include "Image.hpp"

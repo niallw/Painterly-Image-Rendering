@@ -12,18 +12,19 @@
 
 #include "Image.hpp"
 #include "Stroke.hpp"
+#include "Vector.hpp"
 
 using namespace std;
 
 int height, width;
-const float GRID_FACTOR = 1.0;
-const int MIN_BRUSH_SIZE = 2;
-const int BRUSH_RATIO = 2/1;
-const int NUM_BRUSHES = 3;
-const float THRESHOLD = 100;
-const float CURVATURE_FILTER = 1;
+const float GRID_FACTOR = 1.0; // Scale factor for the error area grid size.
+const int MIN_BRUSH_SIZE = 2; // Radius of the smallest brush.
+const int BRUSH_RATIO = 2/1; // Scale factor for calculating next brush size.
+const int NUM_BRUSHES = 3; // Number of brushes we are going to paint with.
+const float THRESHOLD = 0.5; // Error threshold when determining whether to paint or not.
+const float CURVATURE_FILTER = 1; // Determines if we exagerrate or reduce the stroke curvature.
 const int SPLINE_DEGREE = 3; // Cubic spline
-string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/";
+string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/"; // Path to directory of image.
 auto rng = default_random_engine {};
 
 /** Creates a difference map that always returns max int which will guarantee
@@ -87,6 +88,7 @@ vector<vector<float>> get_neighbors(vector<vector<float>> diff_map, int row, int
  *  sobel_x - The horizontal gradient of the reference image.
  *  sobel_y - The vertical gradient of the reference image.
  */
+// TODO: change x and y to be vector objects?
 Stroke* make_stroke(int y, int x, int brush_size, Image* ref_image,
                     Image* canvas, Image* sobel_x, Image* sobel_y){
     Stroke* stroke = new Stroke(x, y, brush_size);
@@ -116,6 +118,7 @@ Stroke* make_stroke(int y, int x, int brush_size, Image* ref_image,
         }
 
         // Get unit vector of gradient
+        // TODO: normalize? the thesis does
         float theta = atan(sobel_x->getRGB(cur_y, cur_x).get_r() /
                            sobel_y->getRGB(cur_y, cur_x).get_r());
         float g_x = cos(theta);
@@ -183,6 +186,7 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
     // to locate regions we want to paint
     for (int row = 0; row < height; row+=grid_size){
         for (int col = 0; col < width; col+=grid_size){
+            //TODO: Change get_neighbors to not save the difference map value. just return x and y and access the difference map in this for loop. duh..
             vector<vector<float>> neighboring_points = get_neighbors(difference, row, col, grid_size);
             float area_error = 0;
 
@@ -259,7 +263,7 @@ vector<int> get_brushes(){
 }
 
 int main(){
-    Image* input = new Image(path + "man.ppm");
+    Image* input = new Image(path + "cat0.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "width: " << width << endl;

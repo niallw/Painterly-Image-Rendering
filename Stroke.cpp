@@ -1,108 +1,135 @@
+// Class for creating brush strokes. 
+// Strokes are represented by cubic B-splines, which we define
+// with control points.
+// Authors: James Plaut and Niall Williams
 
 #include "Stroke.hpp"
 #include "Image.hpp"
 
 using namespace std;
 
+/** Constructor
+ *  x - x-coordinate of the first control point
+ *  y - y-coordinate of the first control point
+ *  radius - Radius of the brush this stroke will be painted with.
+ */
 Stroke::Stroke(int x, int y, int radius){
     this->control_points.push_back(new Vector(x, y));
     this->radius = radius;
 }
 
+/** Deconstructor
+ */
 Stroke::~Stroke(){
     for (Vector* v : control_points)
         delete v;
     control_points.clear();
 }
 
+/** Set the color of the stroke.
+ *  c - Color of the stroke.
+ */
 void Stroke::set_color(Color c){
     this->color = Color(c.get_r(), c.get_g(), c.get_b());
 }
 
+/** Return the color of the stroke.
+ */
 Color Stroke::get_color(){
     return color;
 }
 
+/** Return the radius of the stroke.
+ */
 int Stroke::get_radius(){
     return radius;
 }
 
+/** Add another control point to the spline.
+ *  x - x-coordinate of the control point being added.
+ *  y - y-coordinate of the control point being added.
+ */
 void Stroke::add_control_point(int x, int y){
     control_points.push_back(new Vector(x, y));
 }
 
+/** Return a list of the spline's control points.
+ */
 vector<Vector*> Stroke::get_control_points(){
     return control_points;
 }
 
-// Vector* Stroke::calculate_spline(float t){
-//     int degree = calculate_degree(T_RESOLUTION, control_points.size());
-//     Vector* sum = new Vector(0.0, 0.0);
-
-//     for (int i = 0; i < control_points.size(); i++){
-//         Vector* cur_control_point = control_points[i];
-//         // float cur_N = calculate_N(t, i, degree, 1.0);
-
-//         // *sum = *sum + (*cur_control_point * cur_N);
-//     }
-    
-//     return sum;
-// }
-
-int Stroke::calculate_degree(int m, int n){
-    return m - n - 1;   
-}
-
+/**Calculate the curve defined by the stroke's control points,
+ * and draw the curve onto the canvas. This is where the actual
+ * painting happens.
+ * canvas - The image object we are painting on.
+ * spline_degree - Degree of the spline to draw. In this case, the
+ *                  degree is 3 because we are drawing cubic B-splines.
+ */
 void Stroke::draw_stroke(Image* canvas, int spline_degree){
     int num_ctrl_points = control_points.size();
     int num_knots = control_points.size() + spline_degree + 1;
     vector<float> knots = make_knot_vector(num_knots, spline_degree, num_ctrl_points);
 
+    // Calculate the position of the point along the curve at time t
     for (float t = 0.0; t <= 1.0; t += 1.0/STROKE_RESOLUTION){
         Vector curve_point = Vector(0.0, 0.0);
 
+        // Weight each control point based on t and sum them.
         for (int i = 0; i < num_ctrl_points; i++){
             Vector* cur_point = control_points[i];
             float N = calculate_N(t, i, spline_degree, knots);
             curve_point = curve_point + (*cur_point * N);
         }
 
-        vector<vector<float>> circle_points = calc_circ((int)curve_point.get_y(),
-                                                        (int)curve_point.get_x(),
-                                                        radius, canvas->getHeight(),
-                                                        canvas->getWidth());
-        for (auto point : circle_points){
-            canvas->setColor(point[0], point[1], color);
+        vector<Vector> circle_points = calc_circ((int)curve_point.get_y(),
+                                                (int)curve_point.get_x(),
+                                                radius, canvas->getHeight(),
+                                                canvas->getWidth());
+
+        // Paint!
+        for (Vector point : circle_points){
+            canvas->setColor(point.get_y(), point.get_x(), color);
         }
     }
 }
 
+/**Build the knot vector which is needed to draw the spline curve.
+ * m - The number of knots to calculate.
+ * p - The degree of the spline.
+ * n - The number of control points for the spline.
+ */
 vector<float> Stroke::make_knot_vector(int m, int p, int n){
     vector<float> knots;
+
+    // Forces the curve to start at the first control point.
     for (int i = 0; i <= p; i++){
         knots.push_back(0.0);
     }
     for (int i = 1; i < n - p; i++){
-        knots.push_back((float)i/(float)(n-p+1));
+        knots.push_back((float)i / (float)(n-p+1));
     }
+    // Forces the curve to end at the last control point.
     for (int i = 0; i <= p; i++){
         knots.push_back(1.0);
     }
+
     return knots;
 }
 
+/**Calculate the position of the point on the curve at time t along the curve.
+ * A B-spline is defined recursively. A point along the curve at time t is 
+ * calculated by weighting each of the control points and summing them.
+ * t - Time variable to denote step-size along the curve. Goes from 0 to 1.
+ * i - Index of the control point whose weight is being calculated.
+ * j - Index of the knot.
+ * knots - List of knots
+ */
 float Stroke::calculate_N(float t, int i, int j, vector<float> knots){
-//    https://stackoverflow.com/questions/53564615/how-do-i-get-the-b-spline-curve-to-connect-to-the-final-control-point
-//    jim bob
-//    o831790@nwytg.net
-//    painting96!
     float t_1 = knots[i];
     float t_2 = knots[(i + j)];
     float t_3 = knots[(i + 1)];
     float t_4 = knots[(i + j + 1)];
-    if (t_1 == 1.0){
-        cout<<"E";
-    }
 
     // Base case of basis function
     if (j == 0){
@@ -110,56 +137,44 @@ float Stroke::calculate_N(float t, int i, int j, vector<float> knots){
         else return 0;
     }
 
+    // Check for divide by zero
     float temp1 = (t_2 - t_1 == 0) ? 0 : ((t - t_1) / (t_2 - t_1)) * calculate_N(t, i, j-1, knots);
     float temp2 = (t_4 - t_3 == 0) ? 0 : ((t_4 - t) / (t_4 - t_3)) * calculate_N(t, i+1, j-1, knots);
-//    if (t_2 - t_1 == 0) temp1 = 0;
-//
-//    if (t_4 - t_3 == 0) temp2 = 0;
-//    else{
-//        ;
-//        temp2 = ((t_4 - t) / (t_4 - t_3)) * calculate_N(t, i+1, j-1, knots);
-//    }
-
-//    float temp3 = ;
-
 
     return temp1 + temp2;
 }
 
-/** Calculate the pixels about a pixel that fall into a circle that is drawn
- *  at that pixel center. This is used so we know which pixels to fill in
- *  when rendering the strokes.
- *  c_x - x-coordinate of the center of the circle.
- *  c_y - y-coordinate of the center of the circle.
- *  r - Radius of the circle.
+/**Calculate the pixels around a center pixel that fall into a circle that is drawn
+ * at that pixel center. This is used so we know which pixels to fill in
+ * when rendering the strokes.
+ * c_y - y-coordinate of the center of the circle.
+ * c_x - x-coordinate of the center of the circle.
+ * r - Radius of the circle.
+ * height - Height of the image.
+ * width - Width of the image.
  */
-// TODO: CHANGE THE NAMES OF C_X AND C_Y. C_X IS CURRENTLY THE ROW, AND C_Y IS THE COL
-vector<vector<float>> Stroke::calc_circ(int c_x, int c_y, int r, int height, int width){
-    vector<vector<float>> points;
+vector<Vector> Stroke::calc_circ(int c_y, int c_x, int r, int height, int width){
+    vector<Vector> points;
 
-    for (int x = c_x - r; x <= c_x; x++){
-        for (int y = c_y - r; y <= c_y; y++){
-            int test = (x - c_x)*(x - c_x) + (y - c_y)*(y - c_y);
-            if (test <= r*r){
-                int x_sym = c_x - (x - c_x);
+    for (int y = c_y - r; y <= c_y; y++){
+        for (int x = c_x - r; x <= c_x; x++){
+            int distance = (y - c_y)*(y - c_y) + (x - c_x)*(x - c_x);
+
+            if (distance <= r*r){
+                // Use symmetry to quickly calculate the points in the other 3 
+                // quandrants of the circle to be drawn.
                 int y_sym = c_y - (y - c_y);
-                if (x < 0 || x >= height || y < 0 || y >= width ||
-                    x_sym < 0 || x_sym >= height || y_sym < 0 || y_sym >= width){
+                int x_sym = c_x - (x - c_x);
+
+                if (y < 0 || y >= height || x < 0 || x >= width ||
+                    y_sym < 0 || y_sym >= height || x_sym < 0 || x_sym >= width){
                     break;
                 }
 
-                vector<float> p1, p2, p3, p4;
-                p1.push_back(x);
-                p1.push_back(y);
-
-                p2.push_back(x);
-                p2.push_back(y_sym);
-
-                p3.push_back(x_sym);
-                p3.push_back(y);
-
-                p4.push_back(x_sym);
-                p4.push_back(y_sym);
+                Vector p1 = Vector(x, y);
+                Vector p2 = Vector(x_sym, y);
+                Vector p3 = Vector(x,y_sym);
+                Vector p4 = Vector(x_sym, y_sym);
 
                 points.push_back(p1);
                 points.push_back(p2);
