@@ -35,7 +35,7 @@ vector<Vector> get_neighbors(int, int, int);
 Stroke* make_stroke(int, int, int, Image*, Image*, Image*, Image*);
 
 int main(){
-    Image* input = new Image(path + "cat0.ppm");
+    Image* input = new Image(path + "family3.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "Width: " << width << endl;
@@ -242,8 +242,8 @@ Stroke* make_stroke(int y, int x, int brush_size, Image* ref_image,
         }
 
         // Get unit vector of gradient
-        float theta = atan(sobel_x->getRGB(cur_point.get_y(), cur_point.get_x()).get_r() /
-                           sobel_y->getRGB(cur_point.get_y(), cur_point.get_x()).get_r());
+        float theta = atan(sobel_y->getRGB(cur_point.get_y(), cur_point.get_x()).get_r() /
+                           sobel_x->getRGB(cur_point.get_y(), cur_point.get_x()).get_r());
         float g_x = cos(theta);
         float g_y = sin(theta);
         // Compute a normal to the gradient
