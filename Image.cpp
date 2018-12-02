@@ -69,10 +69,10 @@ Image::Image(string file_name){
 
 Image::~Image(void){
     //TODO: fix this. destructor is giving seg fault
-//    for(int i = 0; i < m_height; i++){
-//        delete [] m_image[i];
-//    }
-//    delete [] m_image;
+   for(int i = 0; i < m_height; i++){
+       delete [] m_image[i];
+   }
+   delete [] m_image;
 }
 
 void Image::setColor(int h, int w, Color c){

@@ -18,10 +18,14 @@ public:
     // Getters
     float get_x() const;
     float get_y() const;
+    void set_x(float);
+    void set_y(float);
 
     float get_length();
     Vector normalize();
     Vector get_direction() const;
+    
+    void clamp(int, int);
 
     // Overload some operators to make life easy
     Vector operator + (const Vector&);

@@ -38,6 +38,18 @@ float Vector::get_y() const{
     return y;
 }
 
+/** Set the x coordinate of the vector.
+ */
+void Vector::set_x(float new_x){
+    this->x = new_x;
+}
+
+/** Set the y coordinate of the vector.
+ */
+void Vector::set_y(float new_y){
+    this->y = new_y;
+}
+
 /** Calculate the norm of the vector.
  */
 float Vector::get_length(){
@@ -88,4 +100,11 @@ Vector Vector::operator/(const float& scalar){
  */
 float Vector::dot(const Vector& v){
     return (this->x * v.get_x()) + (this->y * v.get_y());
+}
+
+void Vector::clamp(int width, int height){
+    if (this->x < 0) this->x = 0;
+    if (this->x >= width) this->x = width - 1;
+    if (this->y < 0) this->y = 0;
+    if (this->y >= height) this->y = height - 1;
 }
