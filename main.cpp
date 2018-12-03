@@ -17,13 +17,13 @@
 using namespace std;
 
 int height, width;
-const float GRID_FACTOR = 1.0; // Scale factor for the error area grid size.
-const int MIN_BRUSH_SIZE = 2; // Radius of the smallest brush.
-const int BRUSH_RATIO = 2/1; // Scale factor for calculating next brush size.
-const int NUM_BRUSHES = 3; // Number of brushes we are going to paint with.
-const float THRESHOLD = 0.5; // Error threshold when determining whether to paint or not.
+const float GRID_FACTOR = 1.0;       // Scale factor for the error area grid size.
+const int MIN_BRUSH_SIZE = 2;        // Radius of the smallest brush.
+const int BRUSH_RATIO = 2/1;         // Scale factor for calculating next brush size.
+const int NUM_BRUSHES = 3;           // Number of brushes we are going to paint with.
+const float THRESHOLD = 0.5;         // Error threshold when determining whether to paint or not.
 const float CURVATURE_FILTER = 0.25; // Determines if we exagerrate or reduce the stroke curvature.
-const int SPLINE_DEGREE = 3; // Cubic spline
+const int SPLINE_DEGREE = 3;         // Cubic spline
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/"; // Path to directory of image.
 auto rng = default_random_engine {};
 
