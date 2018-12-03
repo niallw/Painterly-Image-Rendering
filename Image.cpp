@@ -6,8 +6,11 @@
 
 #include "Image.hpp"
 
-/*
- Create a new blank image
+/**Construct a new, empty image object.
+ * 
+ * w - Width of the image.
+ * h - Height of the image.
+ * m - Max color channel value of the image (255 for normal RGB).
  */
 Image::Image(int w, int h, int m){
     m_width = w;
@@ -22,6 +25,10 @@ Image::Image(int w, int h, int m){
     }
 }
 
+/**Construct an image object from a .ppm file.
+ * 
+ * file_name - Name of the .ppm file.
+ */
 Image::Image(string file_name){
     FILE* file;
     char buff[16];
@@ -67,6 +74,8 @@ Image::Image(string file_name){
     fclose(file);
 }
 
+/**Destructor. This gives a seg fault for some reason.
+ */
 Image::~Image(void){
     //TODO: fix this. destructor is giving seg fault
 //    for(int i = 0; i < m_height; i++){
@@ -75,27 +84,50 @@ Image::~Image(void){
 //    delete [] m_image;
 }
 
+/**Sets the color of the pixel at position (w, h).
+ * 
+ * h - Row of pixel.
+ * w - Column of pixel.
+ * c - Color to set the pixel (w, h) to.
+ */
 void Image::setColor(int h, int w, Color c){
     m_image[h][w] = c;
 }
 
+/**Add a color to the color currently at pixel (w, h).
+ * 
+ * h - Row of pixel.
+ * w - Column of pixel.
+ * c - Color to add to pixel (w, h).
+ */
 void Image::addColor(int h, int w, Color c){
     m_image[h][w] = m_image[h][w] + c;
     m_image[h][w].clamp();
 }
 
+/**Return the image's width.
+ */
 int Image::getWidth(){
     return m_width;
 }
 
+/**Return the image's height.
+ */
 int Image::getHeight(){
     return m_height;
 }
 
+/**Return the image's color array.
+ */
 Color** Image::getImage(){
     return m_image;
 }
 
+/**Return the color at pixel (c, r).
+ * 
+ * r - Row of pixel.
+ * c - Column of pixel.
+ */
 Color Image::getRGB(int r, int c){
 //    if (r == 124)
 //        this->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER "
@@ -103,6 +135,11 @@ Color Image::getRGB(int r, int c){
     return m_image[r][c];
 }
 
+/**Subtract two images. This gives us the Euclidian distance between
+ * two pixels.
+ * 
+ * i - Other image we are subtracting from this image.
+ */
 vector<vector<float>> Image::operator-(Image i){
     vector<vector<float>> difference;
 
@@ -128,6 +165,10 @@ vector<vector<float>> Image::operator-(Image i){
     return difference;
 }
 
+/**Write the image object to a .ppm file.
+ * 
+ * file_name - Name of the output file.
+ */
 void Image::writeImage(string file_name){
     FILE* file;
     file = fopen(file_name.c_str(), "w");
@@ -217,7 +258,7 @@ Image Image::blur(int radius, int std_dev){
                     int new_r = row + R_DELTA;
                     int new_c = col + C_DELTA;
 
-                    // Ignore pixels on the outside FIXME: change this to do mirror?
+                    // Ignore pixels on the outside
                     if (new_r >= 0 && new_r < m_height && new_c >= 0 && new_c < m_width){
                         pixel_color = m_image[new_r][new_c];
                         pixel_color = pixel_color * scale;
@@ -236,6 +277,8 @@ Image Image::blur(int radius, int std_dev){
     return output;
 }
 
+/**Converts an image to just its luminance channels (grayscale).
+ */
 Image Image::grayscale(){
     Image gray = Image(m_width, m_height, 255);
 
@@ -254,7 +297,10 @@ Image Image::grayscale(){
     return gray;
 }
 
-//FIXME: current bug: the output image is quite noisy. Much more so than the GIMP output.
+/**Combines the x and y sobel images to create a full sobel-filtered image.
+ * This is not used in the painting algorithm, but I wrote it to see what 
+ * the output would be. Output is pretty noisy.
+ */
 void Image::sobel_full(){
     Image sobel_x = this->sobel_x();
     Image sobel_y = this->sobel_y();
@@ -273,6 +319,9 @@ void Image::sobel_full(){
     // sobel_image.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/2d_final.ppm");
 }
 
+/**Applies a sobel filter on the image in the x direction.
+ * Highlights horizontal edges.
+ */
 Image Image::sobel_x(){
     Image grayscale = this->grayscale();
     Image sobel_x = Image(m_width, m_height, m_max);
@@ -308,6 +357,9 @@ Image Image::sobel_x(){
     return sobel_x;
 }
 
+/**Applies a sobel filter on the image in the y direction.
+ * Highlights vertical edges.
+ */
 Image Image::sobel_y(){
     Image grayscale = this->grayscale();
     Image sobel_y = Image(m_width, m_height, m_max);

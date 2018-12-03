@@ -11,7 +11,7 @@
 #include "Image.hpp"
 #include "Color.hpp"
 
-#define MAX_STROKE_LENGTH 20 // Max number of control points for a stroke
+#define MAX_STROKE_LENGTH 10 // Max number of control points for a stroke
 #define MIN_STROKE_LENGTH 4 // Min number of control points for a stroke
 #define STROKE_RESOLUTION 100.0 // How smooth the curve will be
 
@@ -44,9 +44,9 @@ class Stroke{
         vector<Vector*> knots;
         Color color;
 
-        // B-spline methods
         vector<float> make_knot_vector(int, int, int);
-        vector<Vector> calc_circ(int, int, int, int, int);
+        vector<Vector> calc_circ(int, int, int, int);
+        void draw_pointillist(Image*);
 };
 
 #endif /* Stroke_hpp */

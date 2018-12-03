@@ -67,6 +67,11 @@ vector<Vector*> Stroke::get_control_points(){
  *                  degree is 3 because we are drawing cubic B-splines.
  */
 void Stroke::draw_stroke(Image* canvas, int spline_degree){
+    if (MIN_STROKE_LENGTH == 0){
+        draw_pointillist(canvas);
+        return;
+    }
+
     int num_ctrl_points = control_points.size();
     int num_knots = control_points.size() + spline_degree + 1;
     vector<float> knots = make_knot_vector(num_knots, spline_degree, num_ctrl_points);
@@ -84,7 +89,7 @@ void Stroke::draw_stroke(Image* canvas, int spline_degree){
 
         vector<Vector> circle_points = calc_circ((int)curve_point.get_y(),
                                                 (int)curve_point.get_x(),
-                                                radius, canvas->getHeight(),
+                                                canvas->getHeight(),
                                                 canvas->getWidth());
 
         // Paint!
@@ -153,14 +158,14 @@ float Stroke::calculate_N(float t, int i, int j, vector<float> knots){
  * height - Height of the image.
  * width - Width of the image.
  */
-vector<Vector> Stroke::calc_circ(int c_y, int c_x, int r, int height, int width){
+vector<Vector> Stroke::calc_circ(int c_y, int c_x, int height, int width){
     vector<Vector> points;
 
-    for (int y = c_y - r; y <= c_y; y++){
-        for (int x = c_x - r; x <= c_x; x++){
+    for (int y = c_y - radius; y <= c_y; y++){
+        for (int x = c_x - radius; x <= c_x; x++){
             int distance = (y - c_y)*(y - c_y) + (x - c_x)*(x - c_x);
 
-            if (distance <= r*r){
+            if (distance <= radius*radius){
                 // Use symmetry to quickly calculate the points in the other 3 
                 // quandrants of the circle to be drawn.
                 int y_sym = c_y - (y - c_y);
@@ -185,4 +190,19 @@ vector<Vector> Stroke::calc_circ(int c_y, int c_x, int r, int height, int width)
     }
 
     return points;
+}
+
+/**Draws in a pointillist style. It just paints circles at
+ * the stroke's sole control point.
+ * canvas - Canvas we are painting on.
+ */
+void Stroke::draw_pointillist(Image* canvas){
+    for (Vector* p : control_points){
+        vector<Vector> circle_points = calc_circ(p->get_y(), p->get_x(), canvas->getHeight(), canvas->getWidth());
+
+        // Paint!
+        for (Vector point : circle_points){
+            canvas->setColor(point.get_y(), point.get_x(), color);
+        }
+    }
 }

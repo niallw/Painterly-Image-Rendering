@@ -60,7 +60,7 @@ float Vector::get_length(){
  *  is always the -z direction
  */
 Vector Vector::get_direction() const{
-    return Vector(0.0, 0.0); //TODO: re-do this
+    return Vector(0.0, 0.0);
 }
 
 /** Normalize the vector.
