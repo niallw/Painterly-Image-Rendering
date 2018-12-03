@@ -16,13 +16,14 @@
 
 using namespace std;
 
+int layer_count = 1;
 int height, width;
 const float GRID_FACTOR = 1.0;       // Scale factor for the error area grid size.
 const int MIN_BRUSH_SIZE = 2;        // Radius of the smallest brush.
 const int BRUSH_RATIO = 2/1;         // Scale factor for calculating next brush size.
 const int NUM_BRUSHES = 3;           // Number of brushes we are going to paint with.
 const float THRESHOLD = 0.5;         // Error threshold when determining whether to paint or not.
-const float CURVATURE_FILTER = 0.25; // Determines if we exagerrate or reduce the stroke curvature.
+const float CURVATURE_FILTER = 1; // Determines if we exagerrate or reduce the stroke curvature.
 const int SPLINE_DEGREE = 3;         // Cubic spline
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/"; // Path to directory of image.
 auto rng = default_random_engine {};
@@ -35,7 +36,7 @@ vector<Vector> get_neighbors(int, int, int);
 Stroke* make_stroke(int, int, int, Image*, Image*, Image*, Image*);
 
 int main(){
-    Image* input = new Image(path + "lights.ppm");
+    Image* input = new Image(path + "filed cat.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "Width: " << width << endl;
@@ -77,7 +78,6 @@ Image* paint(Image* original_image, vector<int> radii){
     for (int brush_size : radii){
         cout<<"Painting with brush size "<<brush_size<<endl;
         Image ref_image = original_image->blur(brush_size, brush_size);
-        ref_image.writeImage(path + "ref.ppm"); //TODO: remove this write
         paint_layer(canvas, &ref_image, brush_size, first_layer);
         if (first_layer) first_layer = false;
     }
@@ -151,6 +151,8 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
     for (Stroke* s : strokes){
         s->draw_stroke(canvas, SPLINE_DEGREE);
     }
+    canvas->writeImage(path + "layer" + to_string(layer_count) + ".ppm");
+    layer_count++;
 
     for (Stroke* s : strokes){
         delete s;
