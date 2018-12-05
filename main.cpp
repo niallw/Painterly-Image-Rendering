@@ -19,6 +19,7 @@ using namespace std;
 int layer_count = 1;
 int height, width;
 const float GRID_FACTOR = 1.0;       // Scale factor for the error area grid size.
+const float GAUSSIAN_FACTOR = 1;       // Scale factor for the error area grid size.
 const int MIN_BRUSH_SIZE = 2;        // Radius of the smallest brush.
 const int BRUSH_RATIO = 2/1;         // Scale factor for calculating next brush size.
 const int NUM_BRUSHES = 3;           // Number of brushes we are going to paint with.
@@ -36,7 +37,7 @@ vector<Vector> get_neighbors(int, int, int);
 Stroke* make_stroke(int, int, int, Image*, Image*, Image*, Image*);
 
 int main(){
-    Image* input = new Image(path + "flowers.ppm");
+    Image* input = new Image(path + "cat0.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "Width: " << width << endl;
@@ -77,7 +78,7 @@ Image* paint(Image* original_image, vector<int> radii){
 
     for (int brush_size : radii){
         cout<<"Painting with brush size "<<brush_size<<endl;
-        Image ref_image = original_image->blur(brush_size, brush_size);
+        Image ref_image = original_image->blur(brush_size, GAUSSIAN_FACTOR * brush_size);
         paint_layer(canvas, &ref_image, brush_size, first_layer);
         if (first_layer) first_layer = false;
     }
@@ -237,8 +238,8 @@ Stroke* make_stroke(int y, int x, int brush_size, Image* ref_image,
         }
 
         // Detect vanishing gradient
-        float gradient_mag = sqrt(sobel_x->getRGB(cur_point.get_y(), cur_point.get_x()).get_r() +
-                                  sobel_y->getRGB(cur_point.get_y(), cur_point.get_x()).get_r());
+        float gradient_mag = sqrt(pow(sobel_x->getRGB(cur_point.get_y(), cur_point.get_x()).get_r(), 2) +
+                                  pow(sobel_y->getRGB(cur_point.get_y(), cur_point.get_x()).get_r(), 2));
         if (gradient_mag == 0){
             return stroke;
         }
@@ -248,8 +249,10 @@ Stroke* make_stroke(int y, int x, int brush_size, Image* ref_image,
                            sobel_x->getRGB(cur_point.get_y(), cur_point.get_x()).get_r());
         float g_x = cos(theta);
         float g_y = sin(theta);
+        Vector temp = Vector(g_x, g_y);
+        temp = temp.normalize();
         // Compute a normal to the gradient
-        Vector direction = Vector(-g_y, g_x);
+        Vector direction = Vector(-(temp.get_y()), temp.get_x());
 
         // Reverse normal if necessary
         if (last_direction.get_x() * direction.get_x() + 

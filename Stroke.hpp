@@ -11,7 +11,7 @@
 #include "Image.hpp"
 #include "Color.hpp"
 
-#define MAX_STROKE_LENGTH 16 // Max number of control points for a stroke
+#define MAX_STROKE_LENGTH 10 // Max number of control points for a stroke
 #define MIN_STROKE_LENGTH 4 // Min number of control points for a stroke
 #define STROKE_RESOLUTION 100.0 // How smooth the curve will be
 
