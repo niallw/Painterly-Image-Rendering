@@ -18,8 +18,7 @@ To paint images, we apply a blur to the original image with an intensity based o
 
 ### Sample Renders
 
-![X](sample-images/profile.png)
-![X](sample-images/profile_painted.png)  
+![X](sample-images/profile.png) ![X](sample-images/profile_painted.png)  
 
 ![X](sample-images/donald.jpg)
 ![X](sample-images/donald_painted.png)  
