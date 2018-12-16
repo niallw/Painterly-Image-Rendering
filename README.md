@@ -3,7 +3,7 @@
 This is my implementation of the paper by [Aaron Hertzmann "Painterly rendering with curved brush strokes of multiple sizes"](https://dl.acm.org/citation.cfm?id=280951). 
 
 This was done for a final project in CSC 361 - Computer Graphics.
-A full write-up can be found [here]().
+A full write-up can be found [here](https://github.com/awoh/Painterly-Image-Rendering/blob/master/writeup.pdf).
 
 To use this program, you must supply the path to a **.ppm image.**
 
