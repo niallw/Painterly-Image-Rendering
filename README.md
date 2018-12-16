@@ -8,12 +8,12 @@ A full write-up can be found [here](https://github.com/awoh/Painterly-Image-Rend
 To use this program, you must supply the path to a **.ppm image.**
 
 We are able to render images in different painted styles, including impressionist and pointillist. The render's appearance depends on:
-    * Minimum brush size
-    * Brush size ratio 
-    * Number of brushes used
-    * New stroke threshold
-    * Minimum and maximum stroke length
-    * Curvature filture (determines how much curviness strokes have)
+* Minimum brush size
+* Brush size ratio 
+* Number of brushes used
+* New stroke threshold
+* Minimum and maximum stroke length
+* Curvature filture (determines how much curviness strokes have)
 
 To paint images, we apply a blur to the original image with an intensity based on the size of the current brush being used to paint. We compare the blurred image to our current canvas to determine which areas should be painted with new strokes. We model strokes using cubic B-splines.
 
