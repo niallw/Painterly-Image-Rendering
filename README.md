@@ -20,54 +20,54 @@ To paint images, we apply a blur to the original image with an intensity based o
 ### Sample Renders
 
 <div align = 'center'>
-<img src = 'sample-images/profile.png' height = '450px'>
-<img src = 'sample-images/profile_painted.png' height = '450px'>
+<img src = 'sample-images/profile.png' width = '400px'>
+<img src = 'sample-images/profile_painted.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/donald.jpg' height = '400px'>
-<img src = 'sample-images/donald_painted.png' height = '400px'>
+<img src = 'sample-images/donald.jpg' width = '400px'>
+<img src = 'sample-images/donald_painted.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/chambers6.jpg' height = '400px'>
-<img src = 'sample-images/chambers6_painted.png' height = '400px'>
+<img src = 'sample-images/chambers6.jpg' width = '400px'>
+<img src = 'sample-images/chambers6_painted.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/tree.jpg' height = '400px'>
-<img src = 'sample-images/tree_painted.png' height = '400px'>
-<img src = 'sample-images/tree_painted_curvy.png' height = '400px'>
+<img src = 'sample-images/tree.jpg' width = '250px'>
+<img src = 'sample-images/tree_painted.png' width = '250px'>
+<img src = 'sample-images/tree_painted_curvy.png' width = '250px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' height = '400px'>
-<img src = 'sample-images/profile_painted.png' height = '400px'>
+<img src = 'sample-images/profile.png' width = '400px'>
+<img src = 'sample-images/profile_painted.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' height = '400px'>
-<img src = 'sample-images/profile_painted.png' height = '400px'>
+<img src = 'sample-images/profile.png' width = '400px'>
+<img src = 'sample-images/profile_painted.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' height = '400px'>
-<img src = 'sample-images/profile_painted.png' height = '400px'>
+<img src = 'sample-images/profile.png' width = '400px'>
+<img src = 'sample-images/profile_painted.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' height = '400px'>
-<img src = 'sample-images/profile_painted.png' height = '400px'>
+<img src = 'sample-images/profile.png' width = '400px'>
+<img src = 'sample-images/profile_painted.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' height = '400px'>
-<img src = 'sample-images/profile_painted.png' height = '400px'>
+<img src = 'sample-images/profile.png' width = '400px'>
+<img src = 'sample-images/profile_painted.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' height = '400px'>
-<img src = 'sample-images/profile_painted.png' height = '400px'>
+<img src = 'sample-images/profile.png' width = '400px'>
+<img src = 'sample-images/profile_painted.png' width = '400px'>
 
 <br>
 </div>
