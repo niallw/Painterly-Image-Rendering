@@ -18,8 +18,40 @@ To paint images, we apply a blur to the original image with an intensity based o
 
 ### Sample Renders
 
-![Profile](sample-images/profile.png)
-![Profile painted](sample-images/profile_painted.png)
+![X](sample-images/profile.png)
+![X](sample-images/profile_painted.png)  
+
+![X](sample-images/donald.jpg)
+![X](sample-images/donald_painted.png)  
+
+![X](sample-images/chambers6.jpg)
+![X](sample-images/chambers6_painted.png)  
+
+![X](sample-images/tree.png)
+![X](sample-images/tree_painted.png)  
+![X](sample-images/tree_painted_curvy.png)  
+
+![X](sample-images/manatee.jpeg)
+![X](sample-images/manatee_painted_curvy.png)  
+
+![X](sample-images/leaves.jpg)
+![X](sample-images/leaves_painted.png)  
+
+![X](sample-images/lights.jpg)
+![X](sample-images/lights_painted_point.png)  
+
+![X](sample-images/snow2.jpg)
+![X](sample-images/snow2_painted_high_curve.png)   
+
+![X](sample-images/japan.jpg)
+![X](sample-images/japan_painted.png)  
+
+![X](sample-images/flowers.jpg)
+![X](sample-images/flowers_painted_fixed.png)  
+![X](sample-images/flowers_pointillist.png)  
+
+![X](sample-images/colosseum.jpg)
+![X](sample-images/colosseum_painted.png)  
 
 ### Useful Links
 
