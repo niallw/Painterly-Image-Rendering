@@ -73,8 +73,14 @@ void Stroke::draw_stroke(Image* canvas, int spline_degree){
     }
 
     int num_ctrl_points = control_points.size();
+    if (num_ctrl_points < 4)
+        return;
     int num_knots = control_points.size() + spline_degree + 1;
     vector<float> knots = make_knot_vector(num_knots, spline_degree, num_ctrl_points);
+
+    if ((control_points.front()->get_x() <= 50 && control_points.front()->get_y() <= 50) ||
+        (control_points.back()->get_x() <= 50 && control_points.back()->get_y() <= 50))
+        return;
 
     // Calculate the position of the point along the curve at time t
     for (float t = 0.0; t <= 1.0; t += 1.0/STROKE_RESOLUTION){
@@ -88,15 +94,19 @@ void Stroke::draw_stroke(Image* canvas, int spline_degree){
         }
 
         vector<Vector> circle_points = calc_circ((int)curve_point.get_y(),
-                                                (int)curve_point.get_x(),
-                                                canvas->getHeight(),
-                                                canvas->getWidth());
+                                                 (int)curve_point.get_x(),
+                                                 canvas->getHeight(),
+                                                 canvas->getWidth());
 
         // Paint!
         for (Vector point : circle_points){
             canvas->setColor(point.get_y(), point.get_x(), color);
+
         }
+//        canvas->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/output.ppm");
+
     }
+//    cout<<"test"<<endl;
 }
 
 /**Build the knot vector which is needed to draw the spline curve.
