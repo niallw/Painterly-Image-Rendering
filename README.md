@@ -20,8 +20,8 @@ To paint images, we apply a blur to the original image with an intensity based o
 ### Sample Renders
 
 <div align = 'center'>
-<img src = 'sample-images/profile.png' height = '400px'>
-<img src = 'sample-images/profile_painted.png' height = '400px'>
+<img src = 'sample-images/profile.png' height = '700px'>
+<img src = 'sample-images/profile_painted.png' height = '700px'>
 
 <br>
 
