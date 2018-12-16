@@ -272,8 +272,7 @@ Image Image::blur(int radius, int std_dev){
         }
     }
 
-    // TODO: remove this writeImage call
-    output.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/blur.ppm");
+    // output.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/blur.ppm");
     return output;
 }
 
@@ -292,8 +291,7 @@ Image Image::grayscale(){
         }
     }
 
-    // TODO: remove this writeImage call
-    gray.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/gray.ppm");
+    // gray.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/gray.ppm");
     return gray;
 }
 
@@ -315,8 +313,7 @@ void Image::sobel_full(){
         }
     }
 
-    // TODO: remove this writeImage call
-    sobel_image.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/2d_final.ppm");
+    // sobel_image.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/2d_final.ppm");
 }
 
 /**Applies a sobel filter on the image in the x direction.
@@ -352,8 +349,7 @@ Image Image::sobel_x(){
         }
     }
 
-    // TODO: remove this writeImage call
-    sobel_x.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_x.ppm");
+    // sobel_x.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_x.ppm");
     return sobel_x;
 }
 
@@ -390,7 +386,6 @@ Image Image::sobel_y(){
         }
     }
 
-    // TODO: remove this writeImage call
-    sobel_y.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_y.ppm");
+    // sobel_y.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_y.ppm");
     return sobel_y;
 }
