@@ -27,7 +27,7 @@ To paint images, we apply a blur to the original image with an intensity based o
 ![X](sample-images/chambers6.jpg)
 ![X](sample-images/chambers6_painted.png)  
 
-![X](sample-images/tree.png)
+![X](sample-images/tree.jpg)
 ![X](sample-images/tree_painted.png)  
 ![X](sample-images/tree_painted_curvy.png)  
 
