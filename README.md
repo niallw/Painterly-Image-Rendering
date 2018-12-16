@@ -35,66 +35,48 @@ To paint images, we apply a blur to the original image with an intensity based o
 
 <br>
 
-<img src = 'sample-images/tree.jpg' width = '250px'>
-<img src = 'sample-images/tree_painted.png' width = '250px'>
-<img src = 'sample-images/tree_painted_curvy.png' width = '250px'>
+<img src = 'sample-images/tree.jpg' width = '266px'>
+<img src = 'sample-images/tree_painted.png' width = '266px'>
+<img src = 'sample-images/tree_painted_curvy.png' width = '266px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' width = '400px'>
-<img src = 'sample-images/profile_painted.png' width = '400px'>
+<img src = 'sample-images/manatee.jpeg' width = '400px'>
+<img src = 'sample-images/manatee_painted_curvy.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' width = '400px'>
-<img src = 'sample-images/profile_painted.png' width = '400px'>
+<img src = 'sample-images/leaves.jpg' width = '400px'>
+<img src = 'sample-images/leaves_painted.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' width = '400px'>
-<img src = 'sample-images/profile_painted.png' width = '400px'>
+<img src = 'sample-images/lights.jpg' width = '400px'>
+<img src = 'sample-images/lights_painted_point.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' width = '400px'>
-<img src = 'sample-images/profile_painted.png' width = '400px'>
+<img src = 'sample-images/snow2.jpg' width = '400px'>
+<img src = 'sample-images/snow2_painted_high_curve.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' width = '400px'>
-<img src = 'sample-images/profile_painted.png' width = '400px'>
+<img src = 'sample-images/japan.png' width = '400px'>
+<img src = 'sample-images/japan_painted.png' width = '400px'>
 
 <br>
 
-<img src = 'sample-images/profile.png' width = '400px'>
-<img src = 'sample-images/profile_painted.png' width = '400px'>
+<img src = 'sample-images/flowers.jpg' width = '266px'>
+<img src = 'sample-images/flowers_painted_fixed.png' width = '266px'>
+<img src = 'sample-images/flowers_pointillist.png' width = '266px'>
+
+<br>
+
+<img src = 'sample-images/colosseum.jpg' width = '400px'>
+<img src = 'sample-images/colosseum_painted.png' width = '400px'>
 
 <br>
 </div>
-
-
-
-![X](sample-images/manatee.jpeg)
-![X](sample-images/manatee_painted_curvy.png)  
-
-![X](sample-images/leaves.jpg)
-![X](sample-images/leaves_painted.png)  
-
-![X](sample-images/lights.jpg)
-![X](sample-images/lights_painted_point.png)  
-
-![X](sample-images/snow2.jpg)
-![X](sample-images/snow2_painted_high_curve.png)   
-
-![X](sample-images/japan.jpg)
-![X](sample-images/japan_painted.png)  
-
-![X](sample-images/flowers.jpg)
-![X](sample-images/flowers_painted_fixed.png)  
-![X](sample-images/flowers_pointillist.png)  
-
-![X](sample-images/colosseum.jpg)
-![X](sample-images/colosseum_painted.png)  
 
 ### Useful Links
 
