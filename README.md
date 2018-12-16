@@ -61,7 +61,7 @@ To paint images, we apply a blur to the original image with an intensity based o
 
 <br>
 
-<img src = 'sample-images/japan.png' width = '400px'>
+<img src = 'sample-images/japan.jpg' width = '400px'>
 <img src = 'sample-images/japan_painted.png' width = '400px'>
 
 <br>
