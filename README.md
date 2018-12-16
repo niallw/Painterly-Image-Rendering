@@ -22,19 +22,57 @@ To paint images, we apply a blur to the original image with an intensity based o
 <div align = 'center'>
 <img src = 'sample-images/profile.png' height = '400px'>
 <img src = 'sample-images/profile_painted.png' height = '400px'>
+
+<br>
+
+<img src = 'sample-images/donald.jpg' height = '400px'>
+<img src = 'sample-images/donald_painted.png' height = '400px'>
+
+<br>
+
+<img src = 'sample-images/chambers6.jpg' height = '400px'>
+<img src = 'sample-images/chambers6_painted.png' height = '400px'>
+
+<br>
+
+<img src = 'sample-images/tree.jpg' height = '400px'>
+<img src = 'sample-images/tree_painted.png' height = '400px'>
+<img src = 'sample-images/tree_painted_curvy.png' height = '400px'>
+
+<br>
+
+<img src = 'sample-images/profile.png' height = '400px'>
+<img src = 'sample-images/profile_painted.png' height = '400px'>
+
+<br>
+
+<img src = 'sample-images/profile.png' height = '400px'>
+<img src = 'sample-images/profile_painted.png' height = '400px'>
+
+<br>
+
+<img src = 'sample-images/profile.png' height = '400px'>
+<img src = 'sample-images/profile_painted.png' height = '400px'>
+
+<br>
+
+<img src = 'sample-images/profile.png' height = '400px'>
+<img src = 'sample-images/profile_painted.png' height = '400px'>
+
+<br>
+
+<img src = 'sample-images/profile.png' height = '400px'>
+<img src = 'sample-images/profile_painted.png' height = '400px'>
+
+<br>
+
+<img src = 'sample-images/profile.png' height = '400px'>
+<img src = 'sample-images/profile_painted.png' height = '400px'>
+
+<br>
 </div>
 
-![X](sample-images/profile.png) ![X](sample-images/profile_painted.png)  
 
-![X](sample-images/donald.jpg)
-![X](sample-images/donald_painted.png)  
-
-![X](sample-images/chambers6.jpg)
-![X](sample-images/chambers6_painted.png)  
-
-![X](sample-images/tree.jpg)
-![X](sample-images/tree_painted.png)  
-![X](sample-images/tree_painted_curvy.png)  
 
 ![X](sample-images/manatee.jpeg)
 ![X](sample-images/manatee_painted_curvy.png)  
