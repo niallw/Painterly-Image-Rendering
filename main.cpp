@@ -26,6 +26,7 @@ const int NUM_BRUSHES = 3;           // Number of brushes we are going to paint 
 const float THRESHOLD = 0.25;        // Error threshold when determining whether to paint or not.
 const float CURVATURE_FILTER = 1;  // Determines if we exagerrate or reduce the stroke curvature.
 const int SPLINE_DEGREE = 3;         // Cubic spline
+const bool INCLUDE_LAYERS = false;
 string path = "/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/"; // Path to directory of image.
 auto rng = default_random_engine {};
 
@@ -152,9 +153,12 @@ void paint_layer(Image* canvas, Image* ref_image, int brush_size, bool is_first_
     for (Stroke* s : strokes){
         s->draw_stroke(canvas, SPLINE_DEGREE);
     }
-    canvas->writeImage(path + "layer" + to_string(layer_count) + ".ppm");
-    layer_count++;
 
+    if (INCLUDE_LAYERS){
+        canvas->writeImage(path + "layer" + to_string(layer_count) + ".ppm");
+        layer_count++;
+    }
+    
     for (Stroke* s : strokes){
         delete s;
     }
