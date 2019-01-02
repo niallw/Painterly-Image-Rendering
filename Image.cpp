@@ -247,7 +247,6 @@ vector<float> Image::calculate_kernel(int radius, int std_dev){
  * input_image - image to blur.
  * radius - radius of the kernel (and brush).
  * sigma - standard deviation of the kernel.
- * TODO: make this work with 2 1D kernels
  */
 Image Image::blur(int radius, int std_dev){
     Image output = Image(m_width, m_height, 255);
@@ -352,21 +351,14 @@ void Image::sobel_full(){
 Image Image::sobel_x(){
     Image grayscale = this->grayscale();
     Image sobel_x = Image(m_width, m_height, m_max);
-
-    // int kernel_1[8] = {1, 0, -1, 2, -2, 1, 0, -1};
-    // int kernel_2[8] = {1, 2, 1, 0, 0, -1, -2, -1};
-    // int r_delta[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-    // int c_delta[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
-
-    int r_delta[3] = {-1, 0, 1};
-    int c_delta[3] = {-1, 0, 1};
+    int delta[3] = {-1, 0, 1};
 
     for (int row = 0; row < m_height; row++){
         for (int col = 0; col < m_width; col++){
             Color new_color = Color();
 
             for (int i = 0; i < 3; i++){   
-                int new_c = col + c_delta[i]; 
+                int new_c = col + delta[i]; 
 
                 if (new_c >= 0 && new_c < m_width){
                     new_color = new_color + (grayscale.getRGB(row, new_c) * sobel_1[i]);
@@ -375,19 +367,17 @@ Image Image::sobel_x(){
 
             new_color = Color(abs(new_color.get_r()), abs(new_color.get_g()), abs(new_color.get_b()));
             new_color.clamp();
-            // new_color = new_color / 3;
 
             sobel_x.setColor(row, col, new_color);
         }
     }
-    sobel_x.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_x_intermediate.ppm");
 
     for (int row = 0; row < m_height; row++){
         for (int col = 0; col < m_width; col++){
             Color new_color = Color();
 
             for (int i = 0; i < 3; i++){
-                int new_r = row + r_delta[i]; 
+                int new_r = row + delta[i]; 
 
                 if (new_r >= 0 && new_r < m_height){
                     new_color = new_color + (sobel_x.getRGB(new_r, col) * sobel_2[i]);
@@ -402,7 +392,7 @@ Image Image::sobel_x(){
         }
     }
 
-    sobel_x.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_x.ppm");
+    // sobel_x.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_x.ppm");
     return sobel_x;
 }
 
@@ -412,21 +402,14 @@ Image Image::sobel_x(){
 Image Image::sobel_y(){
     Image grayscale = this->grayscale();
     Image sobel_y = Image(m_width, m_height, m_max);
-
-    // int kernel_1[8] = {1, 0, -1, 2, -2, 1, 0, -1};
-    // int kernel_2[8] = {1, 2, 1, 0, 0, -1, -2, -1};
-    // int r_delta[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-    // int c_delta[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
-
-    int r_delta[3] = {-1, 0, 1};
-    int c_delta[3] = {-1, 0, 1};
+    int delta[3] = {-1, 0, 1};
 
     for (int row = 0; row < m_height; row++){
         for (int col = 0; col < m_width; col++){
             Color new_color = Color();
 
             for (int i = 0; i < 3; i++){
-                int new_r = row + r_delta[i]; 
+                int new_r = row + delta[i]; 
 
                 if (new_r >= 0 && new_r < m_height){
                     new_color = new_color + (grayscale.getRGB(new_r, col) * sobel_1[i]);
@@ -439,55 +422,13 @@ Image Image::sobel_y(){
             sobel_y.setColor(row, col, new_color);
         }
     }
-
-    //**
-    // for (int row = 0; row < m_height; row++){
-    //     for (int col = 0; col < m_width; col++){
-    //         Color new_color = Color();
-
-    //         for (int i = 0; i < 3; i++){   
-    //             int new_c = col + c_delta[i]; 
-
-    //             if (new_c >= 0 && new_c < m_width){
-    //                 new_color = new_color + (grayscale.getRGB(row, new_c) * sobel_2[i]);
-    //             }
-    //         }
-
-    //         new_color = Color((new_color.get_r()), (new_color.get_g()), (new_color.get_b()));
-    //         // new_color.clamp();
-
-    //         sobel_y.setColor(row, col, new_color);
-    //     }
-    // }
-    sobel_y.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_y_intermediate.ppm");
-   
-    // for (int row = 0; row < m_height; row++){
-    //     for (int col = 0; col < m_width; col++){
-    //         Color new_color = Color();
-
-    //         for (int i = 0; i < 3; i++){
-    //             int new_r = row + r_delta[i]; 
-
-    //             if (new_r >= 0 && new_r < m_height){
-    //                 new_color = new_color + (sobel_y.getRGB(new_r, col) * sobel_1[i]);
-    //             }
-    //         }
-
-    //         new_color = Color(abs(new_color.get_r()), abs(new_color.get_g()), abs(new_color.get_b()));
-    //         new_color.clamp();
-    //         new_color = new_color / 8;
-
-    //         sobel_y.setColor(row, col, new_color);
-    //     }
-    // }
- 
-    //**
+    
     for (int row = 0; row < m_height; row++){
         for (int col = 0; col < m_width; col++){
             Color new_color = Color();
 
             for (int i = 0; i < 3; i++){   
-                int new_c = col + c_delta[i]; 
+                int new_c = col + delta[i]; 
 
                 if (new_c >= 0 && new_c < m_width){
                     new_color = new_color + (sobel_y.getRGB(row, new_c) * sobel_2[i]);
@@ -503,45 +444,6 @@ Image Image::sobel_y(){
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // int kernel_1[8] = {1, 0, -1, 2, -2, 1, 0, -1};
-    // int kernel_2[8] = {1, 2, 1, 0, 0, -1, -2, -1};
-    // int r_delta[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-    // int c_delta[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
-
-    // for (int row = 0; row < m_height; row++){
-    //     for (int col = 0; col < m_width; col++){
-    //         Color y_c = Color();
-
-    //         for (int i = 0; i < 8; i++){
-    //             int new_r = row + r_delta[i];    
-    //             int new_c = col + c_delta[i];    
-
-    //             if (new_r >= 0 && new_r < m_height && new_c >= 0 && new_c < m_width){
-    //                 y_c = y_c + (grayscale.getRGB(new_r, new_c) * kernel_2[i]);
-    //             }
-    //         }
-            
-    //         y_c = Color(abs(y_c.get_r()), abs(y_c.get_g()), abs(y_c.get_b()));
-    //         y_c.clamp();
-            // y_c = y_c / 8;
-
-    //         sobel_y.setColor(row, col, y_c);
-    //     }
-    // }
-
-    sobel_y.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_y.ppm");
+    // sobel_y.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_y.ppm");
     return sobel_y;
 }
