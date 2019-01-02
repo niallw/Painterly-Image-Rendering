@@ -200,31 +200,42 @@ void Image::writeImage(string file_name){
  * radius - radius of the kernel (and brush).
  * sigma - standard deviation of the kernel.
  */
-vector<vector<float>> Image::calculate_kernel(int radius, int std_dev){
+vector<float> Image::calculate_kernel(int radius, int std_dev){
     float sigma = std_dev;
     int W = 2*radius+1;
-    vector<vector<float>> kernel;
+    vector<float> kernel;
     float mean = W/2;
     float sum = 0.0; // For accumulating the kernel values
 
+    // // Create the kernel
+    // for (int x = 0; x < W; ++x) {
+    //     vector<float> temp;
+    //     for (int y = 0; y < W; ++y) {
+    //         // Math to calculate kernel values :)
+    //         temp.push_back(exp(-0.5 * (pow((x-mean)/sigma, 2.0) + pow((y-mean)/sigma,2.0)))
+    //                        / (2 * M_PI * sigma * sigma));
+
+    //         sum += temp[temp.size() - 1]; // Accumulate the kernel values
+    //     }
+    //     kernel.push_back(temp);
+    // }
+
     // Create the kernel
     for (int x = 0; x < W; ++x) {
-        vector<float> temp;
-        for (int y = 0; y < W; ++y) {
+        // for (int y = 0; y < W; ++y) {
             // Math to calculate kernel values :)
-            temp.push_back(exp(-0.5 * (pow((x-mean)/sigma, 2.0) + pow((y-mean)/sigma,2.0)))
-                           / (2 * M_PI * sigma * sigma));
+            kernel.push_back(exp(-0.5 * (pow((x-mean)/sigma, 2.0)))
+                           / sqrt(2 * M_PI * sigma * sigma));
 
-            sum += temp[temp.size() - 1]; // Accumulate the kernel values
-        }
-        kernel.push_back(temp);
+            sum += kernel[kernel.size() - 1]; // Accumulate the kernel values
+        // }
     }
 
     // Normalize the kernel
     for (int x = 0; x < W; ++x) {
-        for (int y = 0; y < W; ++y){
-            kernel[x][y] /= sum;
-        }
+        // for (int y = 0; y < W; ++y){
+            kernel[x] /= sum;
+        // }
     }
 
     return kernel;
@@ -241,38 +252,57 @@ vector<vector<float>> Image::calculate_kernel(int radius, int std_dev){
 Image Image::blur(int radius, int std_dev){
     Image output = Image(m_width, m_height, 255);
     int r = radius;
-    vector<vector<float>> kernel = calculate_kernel(r, std_dev);
+    vector<float> kernel = calculate_kernel(r, std_dev);
 
+    // Horizontal
     for (int row = 0; row < m_height; row++){
-        for (int col = 0; col < m_width; col++){
+        for (int col = 0; col <m_width; col++){
             Color new_val = Color();
 
-            // Weighted sum of neighbors
-            for (int i = 0; i < 2*r+1; i++){
-                for (int j = 0; j < 2*r+1; j++){
-                    int R_DELTA = i-r;
-                    int C_DELTA = j-r;
-                    float scale = kernel[i][j];
-                    Color pixel_color;
+            for (int i = 0; i < kernel.size(); i++){
+                int c_delta = i-r;
+                float scale = kernel[i];
+                Color pixel_color;
 
-                    int new_r = row + R_DELTA;
-                    int new_c = col + C_DELTA;
+                int new_c = col + c_delta;
 
-                    // Ignore pixels on the outside
-                    if (new_r >= 0 && new_r < m_height && new_c >= 0 && new_c < m_width){
-                        pixel_color = m_image[new_r][new_c];
-                        pixel_color = pixel_color * scale;
-                        new_val = new_val + pixel_color;
-                    }
+                if (new_c >= 0 && new_c < m_width){
+                    pixel_color = m_image[row][new_c];
+                    pixel_color = pixel_color * scale;
+                    new_val = new_val + pixel_color;
                 }
             }
 
             new_val.clamp();
-            output.addColor(row, col, new_val);
+            output.setColor(row, col, new_val);
         }
     }
 
-    // output.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/blur.ppm");
+    // Vertical
+    for (int row = 0; row < m_height; row++){
+        for (int col = 0; col < m_width; col++){
+            Color new_val = Color();
+
+            for (int i = 0; i < kernel.size(); i++){
+                int r_delta = i-r;
+                float scale = kernel[i];
+                Color pixel_color;
+
+                int new_r = row + r_delta;
+
+                if (new_r >= 0 && new_r < m_height){
+                    pixel_color = output.getRGB(new_r, col);
+                    pixel_color = pixel_color * scale;
+                    new_val = new_val + pixel_color;
+                }
+            }
+
+            new_val.clamp();
+            output.setColor(row, col, new_val);
+        }
+    }
+
+    output.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/blur.ppm");
     return output;
 }
 
@@ -291,7 +321,7 @@ Image Image::grayscale(){
         }
     }
 
-    // gray.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/gray.ppm");
+    gray.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/gray.ppm");
     return gray;
 }
 
@@ -323,33 +353,56 @@ Image Image::sobel_x(){
     Image grayscale = this->grayscale();
     Image sobel_x = Image(m_width, m_height, m_max);
 
-    int kernel_1[8] = {1, 0, -1, 2, -2, 1, 0, -1};
-    int kernel_2[8] = {1, 2, 1, 0, 0, -1, -2, -1};
-    int r_delta[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-    int c_delta[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+    // int kernel_1[8] = {1, 0, -1, 2, -2, 1, 0, -1};
+    // int kernel_2[8] = {1, 2, 1, 0, 0, -1, -2, -1};
+    // int r_delta[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+    // int c_delta[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+
+    int r_delta[3] = {-1, 0, 1};
+    int c_delta[3] = {-1, 0, 1};
 
     for (int row = 0; row < m_height; row++){
         for (int col = 0; col < m_width; col++){
-            Color x_c = Color();
+            Color new_color = Color();
 
-            for (int i = 0; i < 8; i++){
-                int new_r = row + r_delta[i];    
-                int new_c = col + c_delta[i];    
+            for (int i = 0; i < 3; i++){   
+                int new_c = col + c_delta[i]; 
 
-                if (new_r >= 0 && new_r < m_height && new_c >= 0 && new_c < m_width){
-                    x_c = x_c + (grayscale.getRGB(new_r, new_c) * kernel_1[i]);
+                if (new_c >= 0 && new_c < m_width){
+                    new_color = new_color + (grayscale.getRGB(row, new_c) * sobel_1[i]);
                 }
             }
-            
-            x_c = Color(abs(x_c.get_r()), abs(x_c.get_g()), abs(x_c.get_b()));
-            x_c.clamp();
-            x_c = x_c / 8;
 
-            sobel_x.setColor(row, col, x_c);
+            new_color = Color(abs(new_color.get_r()), abs(new_color.get_g()), abs(new_color.get_b()));
+            new_color.clamp();
+            // new_color = new_color / 3;
+
+            sobel_x.setColor(row, col, new_color);
+        }
+    }
+    sobel_x.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_x_intermediate.ppm");
+
+    for (int row = 0; row < m_height; row++){
+        for (int col = 0; col < m_width; col++){
+            Color new_color = Color();
+
+            for (int i = 0; i < 3; i++){
+                int new_r = row + r_delta[i]; 
+
+                if (new_r >= 0 && new_r < m_height){
+                    new_color = new_color + (sobel_x.getRGB(new_r, col) * sobel_2[i]);
+                }
+            }
+
+            new_color = Color(abs(new_color.get_r()), abs(new_color.get_g()), abs(new_color.get_b()));
+            new_color.clamp();
+            new_color = new_color / 8;
+
+            sobel_x.setColor(row, col, new_color);
         }
     }
 
-    // sobel_x.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_x.ppm");
+    sobel_x.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_x.ppm");
     return sobel_x;
 }
 
@@ -360,32 +413,135 @@ Image Image::sobel_y(){
     Image grayscale = this->grayscale();
     Image sobel_y = Image(m_width, m_height, m_max);
 
-    int kernel_1[8] = {1, 0, -1, 2, -2, 1, 0, -1};
-    int kernel_2[8] = {1, 2, 1, 0, 0, -1, -2, -1};
-    int r_delta[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
-    int c_delta[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+    // int kernel_1[8] = {1, 0, -1, 2, -2, 1, 0, -1};
+    // int kernel_2[8] = {1, 2, 1, 0, 0, -1, -2, -1};
+    // int r_delta[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+    // int c_delta[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+
+    int r_delta[3] = {-1, 0, 1};
+    int c_delta[3] = {-1, 0, 1};
 
     for (int row = 0; row < m_height; row++){
         for (int col = 0; col < m_width; col++){
-            Color y_c = Color();
+            Color new_color = Color();
 
-            for (int i = 0; i < 8; i++){
-                int new_r = row + r_delta[i];    
-                int new_c = col + c_delta[i];    
+            for (int i = 0; i < 3; i++){
+                int new_r = row + r_delta[i]; 
 
-                if (new_r >= 0 && new_r < m_height && new_c >= 0 && new_c < m_width){
-                    y_c = y_c + (grayscale.getRGB(new_r, new_c) * kernel_2[i]);
+                if (new_r >= 0 && new_r < m_height){
+                    new_color = new_color + (grayscale.getRGB(new_r, col) * sobel_1[i]);
                 }
             }
-            
-            y_c = Color(abs(y_c.get_r()), abs(y_c.get_g()), abs(y_c.get_b()));
-            y_c.clamp();
-            y_c = y_c / 8;
 
-            sobel_y.setColor(row, col, y_c);
+            new_color = Color(abs(new_color.get_r()), abs(new_color.get_g()), abs(new_color.get_b()));
+            new_color.clamp();
+
+            sobel_y.setColor(row, col, new_color);
         }
     }
 
-    // sobel_y.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_y.ppm");
+    //**
+    // for (int row = 0; row < m_height; row++){
+    //     for (int col = 0; col < m_width; col++){
+    //         Color new_color = Color();
+
+    //         for (int i = 0; i < 3; i++){   
+    //             int new_c = col + c_delta[i]; 
+
+    //             if (new_c >= 0 && new_c < m_width){
+    //                 new_color = new_color + (grayscale.getRGB(row, new_c) * sobel_2[i]);
+    //             }
+    //         }
+
+    //         new_color = Color((new_color.get_r()), (new_color.get_g()), (new_color.get_b()));
+    //         // new_color.clamp();
+
+    //         sobel_y.setColor(row, col, new_color);
+    //     }
+    // }
+    sobel_y.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_y_intermediate.ppm");
+   
+    // for (int row = 0; row < m_height; row++){
+    //     for (int col = 0; col < m_width; col++){
+    //         Color new_color = Color();
+
+    //         for (int i = 0; i < 3; i++){
+    //             int new_r = row + r_delta[i]; 
+
+    //             if (new_r >= 0 && new_r < m_height){
+    //                 new_color = new_color + (sobel_y.getRGB(new_r, col) * sobel_1[i]);
+    //             }
+    //         }
+
+    //         new_color = Color(abs(new_color.get_r()), abs(new_color.get_g()), abs(new_color.get_b()));
+    //         new_color.clamp();
+    //         new_color = new_color / 8;
+
+    //         sobel_y.setColor(row, col, new_color);
+    //     }
+    // }
+ 
+    //**
+    for (int row = 0; row < m_height; row++){
+        for (int col = 0; col < m_width; col++){
+            Color new_color = Color();
+
+            for (int i = 0; i < 3; i++){   
+                int new_c = col + c_delta[i]; 
+
+                if (new_c >= 0 && new_c < m_width){
+                    new_color = new_color + (sobel_y.getRGB(row, new_c) * sobel_2[i]);
+                }
+            }
+
+            new_color = Color(abs(new_color.get_r()), abs(new_color.get_g()), abs(new_color.get_b()));
+            new_color.clamp();
+            // new_color = new_color / 4;
+            new_color = new_color / 8;
+
+            sobel_y.setColor(row, col, new_color);
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // int kernel_1[8] = {1, 0, -1, 2, -2, 1, 0, -1};
+    // int kernel_2[8] = {1, 2, 1, 0, 0, -1, -2, -1};
+    // int r_delta[8] = {-1, -1, -1, 0, 0, 1, 1, 1};
+    // int c_delta[8] = {-1, 0, 1, -1, 1, -1, 0, 1};
+
+    // for (int row = 0; row < m_height; row++){
+    //     for (int col = 0; col < m_width; col++){
+    //         Color y_c = Color();
+
+    //         for (int i = 0; i < 8; i++){
+    //             int new_r = row + r_delta[i];    
+    //             int new_c = col + c_delta[i];    
+
+    //             if (new_r >= 0 && new_r < m_height && new_c >= 0 && new_c < m_width){
+    //                 y_c = y_c + (grayscale.getRGB(new_r, new_c) * kernel_2[i]);
+    //             }
+    //         }
+            
+    //         y_c = Color(abs(y_c.get_r()), abs(y_c.get_g()), abs(y_c.get_b()));
+    //         y_c.clamp();
+            // y_c = y_c / 8;
+
+    //         sobel_y.setColor(row, col, y_c);
+    //     }
+    // }
+
+    sobel_y.writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/Previous Classes/2018 Fall/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/sobel_y.ppm");
     return sobel_y;
 }

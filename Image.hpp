@@ -51,7 +51,7 @@ private:
     Color** m_image;
 
     Image grayscale();
-    vector<vector<float>> calculate_kernel(int, int);
+    vector<float> calculate_kernel(int, int);
 };
 
 #endif /* Image_hpp */

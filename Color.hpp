@@ -1,6 +1,4 @@
-//
 //  Color.hpp
-//  RayTracer
 //
 //  Created by Peck, Tabitha on 10/15/16.
 //  Copyright © 2016 Davidson College. All rights reserved.

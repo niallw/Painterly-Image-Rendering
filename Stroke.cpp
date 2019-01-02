@@ -67,14 +67,19 @@ vector<Vector*> Stroke::get_control_points(){
  *                  degree is 3 because we are drawing cubic B-splines.
  */
 void Stroke::draw_stroke(Image* canvas, int spline_degree){
+    // Draw pointillist style
     if (MIN_STROKE_LENGTH == 0){
         draw_pointillist(canvas);
         return;
     }
 
     int num_ctrl_points = control_points.size();
-    if (num_ctrl_points < 4)
-        return;
+
+    // You can't draw a cubic B-spline with less than 4 control points. If you do,
+    // it causes a bug where the last control point is (0, 0) so the stroke just cuts
+    // across the painting to the top-left corner. Very ugly!!
+    if (num_ctrl_points < 4) return;
+
     int num_knots = control_points.size() + spline_degree + 1;
     vector<float> knots = make_knot_vector(num_knots, spline_degree, num_ctrl_points);
 
