@@ -37,7 +37,7 @@ vector<Vector> get_neighbors(int, int, int);
 Stroke* make_stroke(int, int, int, Image*, Image*, Image*, Image*);
 
 int main(){
-    Image* input = new Image(path + "chambers6.ppm");
+    Image* input = new Image(path + "donald.ppm");
     height = input->getHeight();
     width = input->getWidth();
     cout << "Width: " << width << endl;

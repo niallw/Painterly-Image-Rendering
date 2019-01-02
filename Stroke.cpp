@@ -67,8 +67,17 @@ vector<Vector*> Stroke::get_control_points(){
  *                  degree is 3 because we are drawing cubic B-splines.
  */
 void Stroke::draw_stroke(Image* canvas, int spline_degree){
+    if (MIN_STROKE_LENGTH > MAX_STROKE_LENGTH){
+        cerr << "Minimum stroke length must be less than or equal to maxiumum stroke length! Exiting..." << endl;
+        exit(1);
+    }
+
     // Draw pointillist style
-    if (MIN_STROKE_LENGTH == 0){
+    if (MAX_STROKE_LENGTH == 0){
+        if (MIN_STROKE_LENGTH != 0){
+            cerr << "Both minimum and maximum stroke length must be 0! Exiting..." << endl;
+            exit(1);
+        }
         draw_pointillist(canvas);
         return;
     }
@@ -108,10 +117,8 @@ void Stroke::draw_stroke(Image* canvas, int spline_degree){
             canvas->setColor(point.get_y(), point.get_x(), color);
 
         }
-//        canvas->writeImage("/home/niwilliams/Dropbox (Davidson College)/Davidson/_CURRENT CLASSES/CSC 361 - COMPUTER GRAPHICS/Homework and exercises/Painterly-Image-Rendering/images/output.ppm");
 
     }
-//    cout<<"test"<<endl;
 }
 
 /**Build the knot vector which is needed to draw the spline curve.
